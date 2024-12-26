@@ -14,6 +14,7 @@ class Admin(UserAdmin):
             'Custom Fields', {
                 'fields': (
                     'Hobbies',
+                    'date_of_birth'
                 )
             }
         )
