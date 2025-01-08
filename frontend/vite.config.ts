@@ -18,4 +18,12 @@ export default defineConfig(({ mode }) => ({
             '@': path.resolve(__dirname, './src'),
         },
     },
+    server: {
+        proxy: {
+            '/staticfiles': {
+                target: 'http://localhost:8000',
+                changeOrigin: true,
+            }
+        }
+    }
 }));

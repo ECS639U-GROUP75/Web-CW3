@@ -20,14 +20,17 @@ def register_view(request: HttpRequest) -> HttpResponse:
         form = UserForm()
     return render(request, 'api/spa/register.html', {'form': form})
 
-def login_view(request: HttpRequest) -> HttpResponse:
+def login_view(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect('main_spa')
-        else:
-            return render(request, 'api/spa/login.html', {'error': 'Invalid credentials'})
-    return render(request, 'api/spa/login.html', {})
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            password = data.get('password')
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return (HttpResponse(status=200))
+            else:
+                return (HttpResponse(status=401))
+        except KeyError:
+            return (HttpResponse(status=400))

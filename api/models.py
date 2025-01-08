@@ -38,6 +38,19 @@ class Friends(models.Model):
 class Profile(models.Model):
     pass
 
+class UserAccount(models.Model):
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=30)
+    username = models.CharField(max_length=30, unique=True)
+    password = models.CharField(max_length=128)  
+    date_created = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['username']
+        
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.username})"
+
 # idk what this is for, it was here before so I'm leaving it here
 # class PageView(models.Model):
 #     count = models.IntegerField(default=0)
