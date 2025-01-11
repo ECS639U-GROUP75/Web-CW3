@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Hobby
+from .models import User, Hobby, Profile, Friends
 from .forms import UserForm
 from django.contrib.auth.admin import UserAdmin
 
@@ -22,3 +22,5 @@ class Admin(UserAdmin):
 
 admin.site.register(User, Admin)
 admin.site.register(Hobby)
+admin.site.register(Profile)
+admin.site.register(Friends)
