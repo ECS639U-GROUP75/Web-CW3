@@ -7,21 +7,25 @@
             >
                 Main Page
             </router-link>
-            |
             <router-link
                 class="nav-link"
                 :to="{name: 'Other Page'}"
             >
                 Other Page
             </router-link>
-            |
             <router-link
                 class="nav-link"
                 :to="{name: 'Profile'}"
             >
               Profile Page
             </router-link>
-            |
+
+            <router-link
+                class="nav-link"
+                :to="{name: 'Hobbies Page'}"
+            >
+                Hobbies
+            </router-link>
               <router-link
                   class="nav-link"
                   :to="{name: 'Login'}"
@@ -43,34 +47,50 @@ export default defineComponent({
 </script>
 
 <style>
-@import './styles/base.css';
+:root{
+    --primary-color: #2D68FE;
+    --primary-color-light: #2d68fe5d;
+}
+
 
 /* Additional custom styles */
 .nav-link {
     text-decoration: none;
     padding: 0.5rem 1rem;
+    margin-right: 1rem;
+    font-weight: 900 !important;
 }
 
 .nav-link:hover {
-    color: var(--link-hover-color);
+    color: var(--primary-color) !important;
 }
 
 .router-link-active {
-    color: var(--link-selected-fg);
+    color: var(--primary-color) !important;
+    background-color: var(--primary-color-light) !important;
     font-weight: bold;
 }
 
 nav {
     margin-bottom: 2rem;
     padding: 1rem;
-    background: var(--body-bg);
-    border-radius: 4px;
-    border: 1px solid var(--hairline-color);
+    background: #fff;
+    border-radius: 4px;;
+    display: flex;
+    flex-direction: row;
+    margin-right: 1rem;
 }
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1rem;
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+    max-width: 1140px;
+}
+
+.pt-4 {
+    padding-top: 1.5rem;
 }
 </style>
