@@ -17,10 +17,17 @@
             |
             <router-link
                 class="nav-link"
-                :to="{name: 'Login'}"
+                :to="{name: 'Profile'}"
             >
-                Login
+              Profile Page
             </router-link>
+            |
+              <router-link
+                  class="nav-link"
+                  :to="{name: 'Login'}"
+              >
+                  Login
+              </router-link>
         </nav>
         <RouterView class="flex-shrink-0" />
     </main>
