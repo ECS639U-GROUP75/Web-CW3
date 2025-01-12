@@ -21,9 +21,9 @@
             </router-link>
             <router-link
                 class="nav-link"
-                :to="{name: 'Search Page'}"
+                :to="{name: 'Hobbies Page'}"
             >
-                Search
+                Hobbies
             </router-link>
         </nav>
         <RouterView class="flex-shrink-0" />
