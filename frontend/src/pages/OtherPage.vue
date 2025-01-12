@@ -1,8 +1,8 @@
 <template>
     <div class="h3">
-      {{ title }}
+        {{ title }}
     </div>
-  </template>
+</template>
   
   <script lang="ts">
       import { defineComponent } from "vue";
