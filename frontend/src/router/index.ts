@@ -8,6 +8,7 @@ import MainPage from '../pages/MainPage.vue';
 import OtherPage from '../pages/OtherPage.vue';
 import Login from '../views/Login.vue';
 import HobbiesPage from '../pages/HobbiesPage.vue';
+import ProfilePage from '../pages/ProfilePage.vue';
 
 let base = (import.meta.env.MODE == 'development') ? import.meta.env.BASE_URL : ''
 
@@ -21,6 +22,7 @@ const router = createRouter({
         { path: '/other/', name: 'Other Page', component: OtherPage },
         { path: '/login', name: 'Login', component: Login },
         { path: '/Hobbies', name: 'Hobbies Page', component: HobbiesPage },
+        { path: '/profile', name: 'Profile', component: ProfilePage},
     ]
 })
 
