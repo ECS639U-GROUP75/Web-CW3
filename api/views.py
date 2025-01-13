@@ -7,6 +7,7 @@ from .models import User
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.middleware.csrf import get_token
 import json
+from django.db import models
 
 def main_spa(request: HttpRequest) -> HttpResponse:
     return render(request, 'api/spa/index.html', {})
@@ -20,8 +21,11 @@ def register_view(request: HttpRequest) -> HttpResponse:
                     username=data['username'],
                     password=data['password'],
                     first_name=data['first_name'],
-                    last_name=data['last_name']
+                    last_name=data['last_name'],
+                    email=data['email']
                 )
+                user.date_of_birth = data['date_of_birth']
+                user.save()
                 return JsonResponse({
                     'success': True,
                     'message': 'Registration successful'
@@ -74,10 +78,12 @@ def login_view(request: HttpRequest) -> HttpResponse:
 
 def get_users(request: HttpRequest) -> JsonResponse:
     try:
-        users = User.objects.annotate(
-            hobby_count=Count('Hobbies')
-        ).values('username', 'first_name', 'last_name', 'hobby_count')
-                
+        logged_in_user = request.user
+        
+        users = User.objects.exclude(id=logged_in_user.id).annotate(
+            common_hobby_count=Count('Hobbies', filter=models.Q(Hobbies__in=logged_in_user.Hobbies.all()))
+        ).values('username', 'first_name', 'last_name', 'common_hobby_count')
+        
         response = JsonResponse({
             'users': list(users)
         })

@@ -7,22 +7,11 @@
       <div id="content">
         <form @submit.prevent="isLogin ? handleLogin() : handleRegister()">
           <div class="form-row" v-if="!isLogin">
-            <label for="first_name">First Name:</label>
+            <label for="email">Email:</label>
             <input 
-              type="text" 
-              id="first_name" 
-              v-model="first_name" 
-              v-if="!isLogin"
-              required
-            />
-          </div>
-          <div class="form-row" v-if="!isLogin">
-            <label for="last_name">Last Name:</label>
-            <input 
-              type="text" 
-              id="last_name" 
-              v-model="last_name" 
-              v-if="!isLogin"
+              type="email" 
+              id="email" 
+              v-model="email" 
               required
             />
           </div>
@@ -34,6 +23,33 @@
               v-model="username" 
               required
               autocomplete="username"
+            />
+          </div>
+          <div class="form-row" v-if="!isLogin">
+            <label for="first_name">First Name:</label>
+            <input 
+              type="text" 
+              id="first_name" 
+              v-model="first_name" 
+              required
+            />
+          </div>
+          <div class="form-row" v-if="!isLogin">
+            <label for="last_name">Last Name:</label>
+            <input 
+              type="text" 
+              id="last_name" 
+              v-model="last_name" 
+              required
+            />
+          </div>
+          <div class="form-row" v-if="!isLogin">
+            <label for="date_of_birth">Date of Birth:</label>
+            <input 
+              type="date" 
+              id="date_of_birth" 
+              v-model="date_of_birth" 
+              required
             />
           </div>
           <div class="form-row">
@@ -77,6 +93,8 @@ export default defineComponent({
     const password = ref('');
     const first_name = ref('');
     const last_name = ref('');
+    const email = ref('');
+    const date_of_birth = ref('');
     const error = ref('');
     const csrfToken = ref('');
     const userStore = useUserStore()
@@ -113,6 +131,8 @@ export default defineComponent({
       password.value = '';
       first_name.value = '';
       last_name.value = '';
+      email.value = '';
+      date_of_birth.value = '';
     };
 
     const handleLogin = async () => {
@@ -146,7 +166,7 @@ export default defineComponent({
 
     const handleRegister = async () => {
       try {
-        const response = await fetch('/api/register/', {
+        const response = await fetch('api/register/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -157,6 +177,8 @@ export default defineComponent({
             password: password.value,
             first_name: first_name.value,
             last_name: last_name.value,
+            email: email.value,
+            date_of_birth: date_of_birth.value,
           }),
           credentials: 'include',
         });
@@ -164,7 +186,6 @@ export default defineComponent({
         const data = await response.json();
 
         if (response.ok) {
-          // Automatically log in after successful registration
           await handleLogin();
         } else {
           error.value = data.message || 'Registration failed';
@@ -185,6 +206,8 @@ export default defineComponent({
       password,
       first_name,
       last_name,
+      email,
+      date_of_birth,
       error,
       toggleForm,
       handleLogin,

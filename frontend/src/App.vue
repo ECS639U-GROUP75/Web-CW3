@@ -3,21 +3,9 @@
         <nav v-if="userStore.isAuthenticated">
             <router-link
                 class="nav-link"
-                :to="{name: 'Main Page'}"
-            >
-                Main Page
-            </router-link>
-            <router-link
-                class="nav-link"
-                :to="{name: 'Other Page'}"
-            >
-                Other Page
-            </router-link>
-            <router-link
-                class="nav-link"
                 :to="{name: 'Profile'}"
             >
-              Profile Page
+              Profile
             </router-link>
 
             <router-link

@@ -5,8 +5,6 @@ import { useUserStore } from '../stores/userStore'
 
 // 1. Define route components.
 // These can be imported from other files
-import MainPage from '../pages/MainPage.vue';
-import OtherPage from '../pages/OtherPage.vue';
 import Login from '../pages/Login.vue';
 import HobbiesPage from '../pages/HobbiesPage.vue';
 import ProfilePage from '../pages/ProfilePage.vue';
@@ -20,8 +18,6 @@ let base = (import.meta.env.MODE == 'development') ? import.meta.env.BASE_URL : 
 const router = createRouter({
     history: createWebHistory(base),
     routes: [
-        { path: '/', name: 'Main Page', component: MainPage, meta: { requiresAuth: true} },
-        { path: '/other/', name: 'Other Page', component: OtherPage, meta: { requiresAuth: true} },
         { path: '/login', name: 'Login', component: Login },
         { path: '/Hobbies', name: 'Hobbies Page', component: HobbiesPage, meta: { requiresAuth: true} },
         { path: '/profile', name: 'Profile', component: ProfilePage, meta: { requiresAuth: true}},
