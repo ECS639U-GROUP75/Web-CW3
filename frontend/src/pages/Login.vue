@@ -5,7 +5,7 @@
         <h1>{{ isLogin ? 'Login' : 'Register' }}</h1>
       </div>
       <div id="content">
-        <form @submit.prevent="isLogin ? handleLogin : handleRegister">
+        <form @submit.prevent="isLogin ? handleLogin() : handleRegister()">
           <div class="form-row" v-if="!isLogin">
             <label for="first_name">First Name:</label>
             <input 
@@ -64,8 +64,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useUserStore } from '../stores/userStore'
 
 export default defineComponent({
   name: 'LoginView',
@@ -77,6 +78,33 @@ export default defineComponent({
     const first_name = ref('');
     const last_name = ref('');
     const error = ref('');
+    const csrfToken = ref('');
+    const userStore = useUserStore()
+
+    const getCsrfToken = async () => {
+      try {
+        const response = await fetch('/api/login/', {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        if (data.csrfToken) {
+          csrfToken.value = data.csrfToken;
+        } else {
+          throw new Error('No CSRF token in response');
+        }
+      } catch (err) {
+        console.error('Error fetching CSRF token:', err);
+        error.value = 'Failed to initialize login form';
+      }
+    };
 
     const toggleForm = () => {
       isLogin.value = !isLogin.value;
@@ -93,17 +121,21 @@ export default defineComponent({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken.value,
           },
           body: JSON.stringify({
             username: username.value,
             password: password.value,
           }),
+          credentials: 'include',
         });
 
+        const data = await response.json();
+
         if (response.ok) {
+          userStore.setUser(data.user)
           router.push('/');
         } else {
-          const data = await response.json();
           error.value = data.message || 'Login failed';
         }
       } catch (err) {
@@ -118,6 +150,7 @@ export default defineComponent({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken.value,
           },
           body: JSON.stringify({
             username: username.value,
@@ -125,13 +158,15 @@ export default defineComponent({
             first_name: first_name.value,
             last_name: last_name.value,
           }),
+          credentials: 'include',
         });
+
+        const data = await response.json();
 
         if (response.ok) {
           // Automatically log in after successful registration
           await handleLogin();
         } else {
-          const data = await response.json();
           error.value = data.message || 'Registration failed';
         }
       } catch (err) {
@@ -139,6 +174,10 @@ export default defineComponent({
         console.error('Registration error:', err);
       }
     };
+
+    onMounted(() => {
+      getCsrfToken();
+    });
 
     return {
       isLogin,
