@@ -18,6 +18,7 @@ let base = (import.meta.env.MODE == 'development') ? import.meta.env.BASE_URL : 
 const router = createRouter({
     history: createWebHistory(base),
     routes: [
+        { path: '/', redirect: {name: 'Profile'}},
         { path: '/login', name: 'Login', component: Login },
         { path: '/Hobbies', name: 'Hobbies Page', component: HobbiesPage, meta: { requiresAuth: true} },
         { path: '/profile', name: 'Profile', component: ProfilePage, meta: { requiresAuth: true}},
@@ -25,7 +26,7 @@ const router = createRouter({
     ]
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _, next) => {
     const userStore = useUserStore()
     
     if (to.meta.requiresAuth && !userStore.isAuthenticated) {

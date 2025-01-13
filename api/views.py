@@ -104,3 +104,4 @@ def logout_view(request: HttpRequest) -> JsonResponse:
             'success': True,
             'message': 'Logged out '
         })
+    return JsonResponse({'error': 'Invalid request'}, status=400)

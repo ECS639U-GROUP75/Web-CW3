@@ -44,8 +44,13 @@ export default defineComponent({
         
         const handleLogout = async () => {
             try {
+                const csrfToken = getCookie('csrftoken') || '';
                 await fetch('/api/logout/', {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
                     credentials: 'include',
                 });
                 userStore.clearUser();
@@ -54,6 +59,21 @@ export default defineComponent({
                 console.error('Logout error:', err);
             }
         };
+
+        function getCookie(name: string): string | null {
+            let cookieValue: string | null = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
 
         return {
             userStore,
