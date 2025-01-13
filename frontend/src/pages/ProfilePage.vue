@@ -10,10 +10,10 @@
     <div>
       <div class="Table">
         <h4 class="blue-color">Details</h4>
-        <div class="Details-item"><b class="blue-color">Name</b> : {{name}}</div>
-        <div class="Details-item"><b class="blue-color">Email</b> : {{email}}</div>
-        <div class="Details-item"><b class="blue-color">Bio</b> : {{Bio}}</div>
-        <div class="Details-item"><b class="blue-color">Date of birth</b> : {{DOB}}</div>
+        <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-user"></i></b> : {{name}}</div>
+        <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-envelope"></i></b> : {{email}}</div>
+        <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-pen-nib"></i></b> : {{Bio}}</div>
+        <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-calendar-days"></i></b> : {{DOB}}</div>
       </div>
     </div>
     <div class="Table full-width-table">
