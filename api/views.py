@@ -9,6 +9,7 @@ from django.middleware.csrf import get_token
 import json
 from django.db import models
 from datetime import date
+from django.core.paginator import Paginator
 
 def main_spa(request: HttpRequest) -> HttpResponse:
     return render(request, 'api/spa/index.html', {})
@@ -82,6 +83,7 @@ def get_users(request: HttpRequest) -> JsonResponse:
         logged_in_user = request.user
         min_age = request.GET.get('min_age', '0')
         max_age = request.GET.get('max_age', '100')
+        page_number = request.GET.get('page', 1)
 
         min_age = int(min_age) if min_age.isdigit() else 0
         max_age = int(max_age) if max_age.isdigit() else 100
@@ -93,10 +95,19 @@ def get_users(request: HttpRequest) -> JsonResponse:
             age=(current_year - F('date_of_birth__year'))
         ).filter(age__gte=min_age, age__lte=max_age).order_by('-common_hobby_count')
 
-        users_data = list(users.values('username', 'first_name', 'last_name', 'common_hobby_count', 'age'))
+        users_values = users.values('username', 'first_name', 'last_name', 'common_hobby_count', 'age')
+
+        paginator = Paginator(users_values, 5)
+        page_users = paginator.get_page(page_number)
+
+        users_data = list(page_users)
 
         response = JsonResponse({
-            'users': users_data
+            'users': users_data,
+            'has_next': page_users.has_next(),
+            'has_previous': page_users.has_previous(),
+            'current_page': page_users.number,
+            'total_pages': paginator.num_pages,
         })
         response['Content-Type'] = 'application/json'
         return response
