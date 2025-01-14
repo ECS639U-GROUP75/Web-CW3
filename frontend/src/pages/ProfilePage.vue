@@ -13,7 +13,7 @@
     </div>
     <div class="bottom-section">
       <div>
-        <div class="Table">
+        <div id="Details_section" class="Table">
           <h4 class="blue-color">Details</h4>
           <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-user"></i></b> : {{ name }}</div>
           <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-envelope"></i></b> : {{ email }}</div>
@@ -21,7 +21,7 @@
           <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-calendar-days"></i></b> : {{ dob }}</div>
         </div>
       </div>
-      <div class="Table full-width-table">
+      <div id="Hobbies_section" class="Table full-width-table">
         <div class="hobby-title">
           <h4 class="blue-color">Hobbies</h4>
           <button id="add-button" @click="openHobbiesAddModal"><i class="fa-solid fa-plus"></i> Add</button>
@@ -29,9 +29,6 @@
         <div class="Table-Row blue-color " v-for="hobby in hobbies" :key="hobby">
           {{ hobby }}
           <div>
-            <button @click="openEditHobbyModal(hobby)">
-              <i class="fa-solid fa-pen"></i>
-            </button>
             <button>
               <i class="fa-solid fa-dumpster"></i>
             </button>
@@ -52,19 +49,19 @@
         <div class="modal-body">
           <div>
             <label for="username">Username</label>
-            <input type="text" id="username" v-model="username" />
+            <input class="form-control" type="text" id="username" v-model="username" />
           </div>
           <div>
             <label for="email">Email</label>
-            <input type="email" id="email" v-model="email" />
+            <input class="form-control" type="email" id="email" v-model="email" />
           </div>
           <div>
             <label for="bio">Bio</label>
-            <textarea id="bio" v-model="bio"></textarea>
+            <textarea class="form-control" id="bio" v-model="bio"></textarea>
           </div>
           <div>
             <label for="dob">Date of Birth</label>
-            <input type="date" id="dob" v-model="dob" />
+            <input class="form-control" type="date" id="dob" v-model="dob" />
           </div>
         </div>
         <div class="modal-footer">
@@ -299,9 +296,12 @@ export default defineComponent({
 }
 .bottom-section
 {
-  display: flex;
-  flex-direction: row;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: 35% 1% 64%;
+  grid-template-areas: 
+  'Details_section . Hobbies_section'
+  ;
+  max-width: 100%;
 }
 .Table
 {
@@ -332,16 +332,32 @@ export default defineComponent({
   border-radius: 0.5rem;
   padding: 1rem;
 }
+#Hobbies_section
+{
+  grid-area: Hobbies_section;
+}
+#Details_section
+{
+  grid-area: Details_section;
+}
 .Details-item
 {
   padding: 1rem;
   border-bottom: 1pt solid #0a53be;
   margin-left: 1rem;
   margin-right: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  word-break: break-word;
+  text-overflow: ellipsis;
 }
 h4
 {
   padding: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  word-break: break-word;
+  text-overflow: ellipsis;
 }
 .blue-color
 {
