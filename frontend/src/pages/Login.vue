@@ -5,24 +5,13 @@
         <h1>{{ isLogin ? 'Login' : 'Register' }}</h1>
       </div>
       <div id="content">
-        <form @submit.prevent="isLogin ? handleLogin : handleRegister">
+        <form @submit.prevent="isLogin ? handleLogin() : handleRegister()">
           <div class="form-row" v-if="!isLogin">
-            <label for="first_name">First Name:</label>
+            <label for="email">Email:</label>
             <input 
-              type="text" 
-              id="first_name" 
-              v-model="first_name" 
-              v-if="!isLogin"
-              required
-            />
-          </div>
-          <div class="form-row" v-if="!isLogin">
-            <label for="last_name">Last Name:</label>
-            <input 
-              type="text" 
-              id="last_name" 
-              v-model="last_name" 
-              v-if="!isLogin"
+              type="email" 
+              id="email" 
+              v-model="email" 
               required
             />
           </div>
@@ -34,6 +23,33 @@
               v-model="username" 
               required
               autocomplete="username"
+            />
+          </div>
+          <div class="form-row" v-if="!isLogin">
+            <label for="first_name">First Name:</label>
+            <input 
+              type="text" 
+              id="first_name" 
+              v-model="first_name" 
+              required
+            />
+          </div>
+          <div class="form-row" v-if="!isLogin">
+            <label for="last_name">Last Name:</label>
+            <input 
+              type="text" 
+              id="last_name" 
+              v-model="last_name" 
+              required
+            />
+          </div>
+          <div class="form-row" v-if="!isLogin">
+            <label for="date_of_birth">Date of Birth:</label>
+            <input 
+              type="date" 
+              id="date_of_birth" 
+              v-model="date_of_birth" 
+              required
             />
           </div>
           <div class="form-row">
@@ -64,8 +80,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useUserStore } from '../stores/userStore'
 
 export default defineComponent({
   name: 'LoginView',
@@ -76,7 +93,36 @@ export default defineComponent({
     const password = ref('');
     const first_name = ref('');
     const last_name = ref('');
+    const email = ref('');
+    const date_of_birth = ref('');
     const error = ref('');
+    const csrfToken = ref('');
+    const userStore = useUserStore()
+
+    const getCsrfToken = async () => {
+      try {
+        const response = await fetch('/api/login/', {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        if (data.csrfToken) {
+          csrfToken.value = data.csrfToken;
+        } else {
+          throw new Error('No CSRF token in response');
+        }
+      } catch (err) {
+        console.error('Error fetching CSRF token:', err);
+        error.value = 'Failed to initialize login form';
+      }
+    };
 
     const toggleForm = () => {
       isLogin.value = !isLogin.value;
@@ -85,6 +131,8 @@ export default defineComponent({
       password.value = '';
       first_name.value = '';
       last_name.value = '';
+      email.value = '';
+      date_of_birth.value = '';
     };
 
     const handleLogin = async () => {
@@ -93,17 +141,21 @@ export default defineComponent({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken.value,
           },
           body: JSON.stringify({
             username: username.value,
             password: password.value,
           }),
+          credentials: 'include',
         });
 
+        const data = await response.json();
+
         if (response.ok) {
+          userStore.setUser(data.user)
           router.push('/');
         } else {
-          const data = await response.json();
           error.value = data.message || 'Login failed';
         }
       } catch (err) {
@@ -114,24 +166,28 @@ export default defineComponent({
 
     const handleRegister = async () => {
       try {
-        const response = await fetch('/api/register/', {
+        const response = await fetch('api/register/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken.value,
           },
           body: JSON.stringify({
             username: username.value,
             password: password.value,
             first_name: first_name.value,
             last_name: last_name.value,
+            email: email.value,
+            date_of_birth: date_of_birth.value,
           }),
+          credentials: 'include',
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-          // Automatically log in after successful registration
           await handleLogin();
         } else {
-          const data = await response.json();
           error.value = data.message || 'Registration failed';
         }
       } catch (err) {
@@ -140,12 +196,18 @@ export default defineComponent({
       }
     };
 
+    onMounted(() => {
+      getCsrfToken();
+    });
+
     return {
       isLogin,
       username,
       password,
       first_name,
       last_name,
+      email,
+      date_of_birth,
       error,
       toggleForm,
       handleLogin,

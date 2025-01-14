@@ -1,23 +1,11 @@
 <template>
     <main class="container pt-4">
-        <nav>
-            <router-link
-                class="nav-link"
-                :to="{name: 'Main Page'}"
-            >
-                Main Page
-            </router-link>
-            <router-link
-                class="nav-link"
-                :to="{name: 'Other Page'}"
-            >
-                Other Page
-            </router-link>
+        <nav v-if="userStore.isAuthenticated">
             <router-link
                 class="nav-link"
                 :to="{name: 'Profile'}"
             >
-              Profile Page
+              Profile
             </router-link>
 
             <router-link
@@ -26,12 +14,18 @@
             >
                 Hobbies
             </router-link>
-              <router-link
-                  class="nav-link"
-                  :to="{name: 'Login'}"
-              >
-                  Login
-              </router-link>
+            <router-link
+                class="nav-link"
+                :to="{name: 'Friends Page'}"
+            > 
+                Friends
+            </router-link>
+            
+            <div class="user-info">
+                Welcome, {{ userStore.firstName || userStore.username }}!
+                <button @click="handleLogout" class="btn-logout">Logout</button>
+            </div>
+
         </nav>
         <RouterView class="flex-shrink-0" />
     </main>
@@ -39,10 +33,53 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { RouterView } from "vue-router";
+import { RouterView, useRouter } from "vue-router";
+import { useUserStore } from './stores/userStore';
 
 export default defineComponent({
     components: { RouterView },
+    setup() {
+        const userStore = useUserStore();
+        const router = useRouter();
+        
+        const handleLogout = async () => {
+            try {
+                const csrfToken = getCookie('csrftoken') || '';
+                await fetch('/api/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    credentials: 'include',
+                });
+                userStore.clearUser();
+                router.push('/login');
+            } catch (err) {
+                console.error('Logout error:', err);
+            }
+        };
+
+        function getCookie(name: string): string | null {
+            let cookieValue: string | null = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        return {
+            userStore,
+            handleLogout,
+        };
+    }
 });
 </script>
 
@@ -92,5 +129,24 @@ nav {
 
 .pt-4 {
     padding-top: 1.5rem;
+}
+
+.user-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.btn-logout {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-logout:hover {
+    background-color: #c82333;
 }
 </style>

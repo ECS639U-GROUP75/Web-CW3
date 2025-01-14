@@ -20,14 +20,18 @@
         <tr>
           <th>Username</th>
           <th>Full Name</th>
-          <th>Number of Hobbies</th>
+          <th>Common Hobbies</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="user in users" :key="user.username">
           <td>{{ user.username }}</td>
           <td>{{ formatFullName(user) }}</td>
-          <td>{{ user.hobby_count }}</td>
+          <td>{{ user.common_hobby_count }}</td>
+          <td>
+            <button class="btn btn-primary">Send Friend Request</button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -41,9 +45,8 @@ interface User {
   username: string;
   first_name: string;
   last_name: string;
-  hobby_count: number;
+  common_hobby_count: number;
 }
-
 
 export default defineComponent({
   inheritAttrs: false,
