@@ -91,9 +91,7 @@ def get_users(request: HttpRequest) -> JsonResponse:
         users = User.objects.exclude(id=logged_in_user.id).annotate(
             common_hobby_count=Count('Hobbies', filter=models.Q(Hobbies__in=logged_in_user.Hobbies.all())),
             age=(current_year - F('date_of_birth__year'))
-        )
-
-        users = users.filter(age__gte=min_age, age__lte=max_age)
+        ).filter(age__gte=min_age, age__lte=max_age).order_by('-common_hobby_count')
 
         users_data = list(users.values('username', 'first_name', 'last_name', 'common_hobby_count', 'age'))
 
