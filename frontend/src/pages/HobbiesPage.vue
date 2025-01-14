@@ -44,6 +44,11 @@
         </tr>
       </tbody>
     </table>
+    <div class="pagination">
+      <button class="btn btn-primary" @click="changePage(currentPage - 1)" :disabled="!hasPrevious">Previous</button>
+      <span>Page {{ currentPage }} of {{ totalPages }}</span>
+      <button class="btn btn-primary" @click="changePage(currentPage + 1)" :disabled="!hasNext">Next</button>
+    </div>
   </div>
 </template>
 
@@ -68,6 +73,10 @@ export default defineComponent({
       loading: true,
       minAge: null,
       maxAge: null,
+      currentPage: 1,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
     };
   },
 
@@ -82,17 +91,24 @@ export default defineComponent({
     resetFilter() {
       this.minAge = null;
       this.maxAge = null;
+      this.currentPage = 1;
       this.fetchUsers();
     },
 
     async fetchUsers() {
       this.loading = true;
       this.error = null;
-      
+
       try {
-        const response = await fetch(`/api/users-hobbies/?min_age=${this.minAge || ''}&max_age=${this.maxAge || ''}`);
+        const minAgeValue = this.minAge !== null ? this.minAge : 0;
+        const maxAgeValue = this.maxAge !== null ? this.maxAge : 100;
+
+        const url = `/api/users-hobbies/?min_age=${minAgeValue}&max_age=${maxAgeValue}&page=${this.currentPage}`;
+        console.log("Fetching users from:", url);
+
+        const response = await fetch(url);
         const contentType = response.headers.get("content-type");
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch users');
         }
@@ -102,16 +118,27 @@ export default defineComponent({
         }
 
         const data = await response.json();
-        
+
         if (data.error) {
           throw new Error(data.error);
         }
-        
+
         this.users = data.users;
+        this.hasNext = data.has_next;
+        this.hasPrevious = data.has_previous;
+        this.currentPage = data.current_page;
+        this.totalPages = data.total_pages;
       } catch (err) {
         this.error = err instanceof Error ? err.message : 'An error occurred';
       } finally {
         this.loading = false;
+      }
+    },
+
+    changePage(page: number) {
+      if (page > 0 && page <= this.totalPages) {
+        this.currentPage = page;
+        this.fetchUsers();
       }
     },
   },
