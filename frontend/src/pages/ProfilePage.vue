@@ -8,7 +8,7 @@
       <div id="banner-image"></div>
       <div id="banner-lower-section" class="hobby-title">
         <h4 class="blue-color">{{ username }}</h4>
-        <button id="add-button"><i class="fa-solid fa-pen"></i> Edit</button>
+        <button id="edit-button" @click="openProfileEditModal"><i class="fa-solid fa-pen"></i> Edit</button>
       </div>
     </div>
     <div class="bottom-section">
@@ -24,12 +24,12 @@
       <div class="Table full-width-table">
         <div class="hobby-title">
           <h4 class="blue-color">Hobbies</h4>
-          <button id="add-button"><i class="fa-solid fa-plus"></i> Add</button>
+          <button id="add-button" @click="openHobbiesAddModal"><i class="fa-solid fa-plus"></i> Add</button>
         </div>
         <div class="Table-Row blue-color " v-for="hobby in hobbies" :key="hobby">
           {{ hobby }}
           <div>
-            <button>
+            <button @click="openEditHobbyModal(hobby)">
               <i class="fa-solid fa-pen"></i>
             </button>
             <button>
@@ -41,16 +41,79 @@
     </div>
   </div>
 
-  <!-- MODAL TEMPLATE -->
+  <!-- MODAL TEMPLATE FOR PROFILE EDIT -->
+  <div class="modal fade" id="ProfileEditModal" aria-labelledby="ProfileEditModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1>Edit Profile</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div>
+            <label for="username">Username</label>
+            <input type="text" id="username" v-model="username" />
+          </div>
+          <div>
+            <label for="email">Email</label>
+            <input type="email" id="email" v-model="email" />
+          </div>
+          <div>
+            <label for="bio">Bio</label>
+            <textarea id="bio" v-model="bio"></textarea>
+          </div>
+          <div>
+            <label for="dob">Date of Birth</label>
+            <input type="date" id="dob" v-model="dob" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" @click="saveProfileEditModal">Save changes</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL TEMPLATE FOR HOBBY ADD -->
+  <div class="modal fade" id="HobbyAddModal" aria-labelledby="HobbyAddModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1>Add Hobby</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div>
+            <label for="hobby-name">Hobby Name</label>
+            <input type="text" id="hobby-name" v-model="selectedHobby" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" @click="saveEditHobbyModal">Save changes</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL TEMPLATE FOR HOBBY EDIT -->
   <div class="modal fade" id="HobbyEditModal" aria-labelledby="HobbyEditModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h1>Hobby (CHANGE WITH RESPECTIVE HOBBY)</h1>
+          <h1>Edit Hobby</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <div>HOBBY NAME</div>
+          <div>
+            <label for="hobby-name">Hobby Name</label>
+            <input type="text" id="hobby-name" v-model="selectedHobby" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" @click="saveEditHobbyModal">Save changes</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         </div>
       </div>
     </div>
@@ -60,6 +123,7 @@
 <script lang="ts">
 import { defineComponent, onMounted, ref } from "vue";
 import { useUserStore } from '../stores/userStore';
+import 'bootstrap';
 
 export default defineComponent({
   inheritAttrs: false,
@@ -72,6 +136,7 @@ export default defineComponent({
     const bio = ref("");
     const dob = ref("");
     const hobbies = ref([]);
+    const selectedHobby = ref("");
 
     const fetchUserProfile = async () => {
       try {
@@ -91,6 +156,40 @@ export default defineComponent({
       }
     };
 
+    const openProfileEditModal = () => {
+      const modal = new bootstrap.Modal(document.getElementById('ProfileEditModal'));
+      modal.show();
+    };
+
+    const saveProfileEditModal = () => {
+      console.log("Saving profile:", { username: username.value, email: email.value, bio: bio.value, dob: dob.value });
+      const modal = bootstrap.Modal.getInstance(document.getElementById('ProfileEditModal'));
+      modal.hide();
+    };
+
+    const openEditHobbyModal = (hobby) => {
+      selectedHobby.value = hobby;
+      const modal = new bootstrap.Modal(document.getElementById('HobbyEditModal'));
+      modal.show();
+    };
+
+    const saveEditHobbyModal = () => {
+      console.log("Saving hobby:", selectedHobby.value);
+      const modal = bootstrap.Modal.getInstance(document.getElementById('HobbyEditModal'));
+      modal.hide();
+    };
+
+    const openHobbiesAddModal = () => {
+      const modal = new bootstrap.Modal(document.getElementById('HobbyAddModal'));
+      modal.show();
+    };
+
+    const saveAddHobbyModal = () => {
+      console.log("Saving hobby:", selectedHobby.value);
+      const modal = bootstrap.Modal.getInstance(document.getElementById('HobbyAddModal'));
+      modal.hide();
+    };
+
     onMounted(() => {
       fetchUserProfile();
     });
@@ -103,6 +202,13 @@ export default defineComponent({
       bio,
       dob,
       hobbies,
+      selectedHobby,
+      openProfileEditModal,
+      saveProfileEditModal,
+      openEditHobbyModal,
+      saveEditHobbyModal,
+      openHobbiesAddModal,
+      saveAddHobbyModal
     };
   }
 });
@@ -184,7 +290,7 @@ h4
   border-top-left-radius: 1rem;
   border-top-right-radius: 1rem;
 }
-#add-button
+#add-button, #edit-button
 {
   background-color: #0a53be;
   border-color: #0a53be;
