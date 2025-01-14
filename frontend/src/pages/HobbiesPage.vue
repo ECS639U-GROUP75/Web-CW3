@@ -6,10 +6,11 @@
     This is a page to see other users with similar hobbies.
   </div>
 
-  <div class="mb-4">
+  <div class="mb-4" id="filter-container">
     <input type="number" v-model="minAge" placeholder="Min Age" />
     <input type="number" v-model="maxAge" placeholder="Max Age" />
-    <button @click="fetchUsers">Apply Filter</button>
+    <button class="btn btn-primary" @click="fetchUsers">Apply Filter</button>
+    <button class="btn btn-primary" @click="resetFilter">Reset Filter</button>
   </div>
 
   <div v-if="loading" class="text-center">
@@ -78,6 +79,12 @@ export default defineComponent({
       return 'N/A';
     },
 
+    resetFilter() {
+      this.minAge = null;
+      this.maxAge = null;
+      this.fetchUsers();
+    },
+
     async fetchUsers() {
       this.loading = true;
       this.error = null;
@@ -118,5 +125,11 @@ export default defineComponent({
 <style scoped>
 .table {
   margin-top: 1rem;
+}
+
+#filter-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 </style>
