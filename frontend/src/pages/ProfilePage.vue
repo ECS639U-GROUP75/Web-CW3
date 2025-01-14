@@ -177,7 +177,18 @@ export default defineComponent({
         console.error('Error fetching user profile:', error);
       }
     };
-    
+    const closeProfileEditModal = () => {
+      username.value = temp_username;
+      email.value = temp_email;
+      bio.value = temp_bio;
+      dob.value = temp_dob;
+      temp_username = "";
+      temp_email = "";
+      temp_bio = "";
+      temp_dob = "";
+      const modal = bootstrap.Modal.getInstance(document.getElementById('ProfileEditModal'));
+      modal.hide();
+    };
     
     const openProfileEditModal = () => {
       temp_username = username.value;
@@ -192,20 +203,6 @@ export default defineComponent({
       const modal = bootstrap.Modal.getInstance(document.getElementById('ProfileEditModal'));
       modal.hide();
     };
-    const closeProfileEditModal = () => {
-      username.value = temp_username;
-      email.value = temp_email;
-      bio.value = temp_bio;
-      dob.value = temp_dob;
-      temp_username = "";
-      temp_email = "";
-      temp_bio = "";
-      temp_dob = "";
-      const modal = bootstrap.Modal.getInstance(document.getElementById('ProfileEditModal'));
-      modal.hide();
-    };
-    
-
     const openEditHobbyModal = (hobby) => {
       selectedHobby.value = hobby;
       const modal = new bootstrap.Modal(document.getElementById('HobbyEditModal'));
@@ -222,7 +219,6 @@ export default defineComponent({
       const modal = new bootstrap.Modal(document.getElementById('HobbyAddModal'));
       modal.show();
     };
-
     const saveAddHobbyModal = async () => {
       if (!newHobby.value.trim()) {
         addHobbyError.value = "Hobby name cannot be empty";
@@ -291,7 +287,8 @@ export default defineComponent({
       openEditHobbyModal,
       saveEditHobbyModal,
       openHobbiesAddModal,
-      saveAddHobbyModal
+      saveAddHobbyModal,
+      closeProfileEditModal
     };
   }
 });
