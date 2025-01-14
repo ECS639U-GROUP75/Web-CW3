@@ -66,7 +66,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary" @click="saveProfileEditModal">Save changes</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-secondary" @click="closeProfileEditModal">Close</button>
         </div>
       </div>
     </div>
@@ -155,6 +155,10 @@ export default defineComponent({
     const newHobby = ref("");
     const addHobbyError = ref("");
     const isSubmitting = ref(false);
+    var temp_username = "";
+    var temp_email = "";
+    var temp_bio = "";
+    var temp_dob = "";
 
     const fetchUserProfile = async () => {
       try {
@@ -168,22 +172,39 @@ export default defineComponent({
         email.value = data.email;
         bio.value = data.bio;
         dob.value = data.date_of_birth;
-        hobbies.value = data.hobbies; 
+        hobbies.value = data.hobbies;
       } catch (error) {
         console.error('Error fetching user profile:', error);
       }
     };
-
+    
+    
     const openProfileEditModal = () => {
+      temp_username = username.value;
+      temp_email = email.value;
+      temp_bio = bio.value;
+      temp_dob = dob.value;
       const modal = new bootstrap.Modal(document.getElementById('ProfileEditModal'));
       modal.show();
     };
-
     const saveProfileEditModal = () => {
       console.log("Saving profile:", { username: username.value, email: email.value, bio: bio.value, dob: dob.value });
       const modal = bootstrap.Modal.getInstance(document.getElementById('ProfileEditModal'));
       modal.hide();
     };
+    const closeProfileEditModal = () => {
+      username.value = temp_username;
+      email.value = temp_email;
+      bio.value = temp_bio;
+      dob.value = temp_dob;
+      temp_username = "";
+      temp_email = "";
+      temp_bio = "";
+      temp_dob = "";
+      const modal = bootstrap.Modal.getInstance(document.getElementById('ProfileEditModal'));
+      modal.hide();
+    };
+    
 
     const openEditHobbyModal = (hobby) => {
       selectedHobby.value = hobby;
