@@ -84,13 +84,29 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <div>
+          <div class="form-group">
             <label for="hobby-name">Hobby Name</label>
-            <input type="text" id="hobby-name" v-model="selectedHobby" />
+            <input 
+              type="text" 
+              id="hobby-name" 
+              class="form-control" 
+              v-model="newHobby"
+              :class="{'is-invalid': addHobbyError}"
+            />
+            <div class="invalid-feedback" v-if="addHobbyError">
+              {{ addHobbyError }}
+            </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" @click="saveEditHobbyModal">Save changes</button>
+          <button 
+            type="button" 
+            class="btn btn-primary" 
+            @click="saveAddHobbyModal"
+            :disabled="isSubmitting"
+          >
+            {{ isSubmitting ? 'Adding...' : 'Add Hobby' }}
+          </button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         </div>
       </div>
@@ -124,6 +140,8 @@
 import { defineComponent, onMounted, ref } from "vue";
 import { useUserStore } from '../stores/userStore';
 import 'bootstrap';
+import * as bootstrap from 'bootstrap';
+import { getCsrfToken } from '../utils/auth';
 
 export default defineComponent({
   inheritAttrs: false,
@@ -135,8 +153,11 @@ export default defineComponent({
     const email = ref("");
     const bio = ref("");
     const dob = ref("");
-    const hobbies = ref([]);
+    const hobbies = ref<string[]>([]);
     const selectedHobby = ref("");
+    const newHobby = ref("");
+    const addHobbyError = ref("");
+    const isSubmitting = ref(false);
 
     const fetchUserProfile = async () => {
       try {
@@ -184,10 +205,51 @@ export default defineComponent({
       modal.show();
     };
 
-    const saveAddHobbyModal = () => {
-      console.log("Saving hobby:", selectedHobby.value);
-      const modal = bootstrap.Modal.getInstance(document.getElementById('HobbyAddModal'));
-      modal.hide();
+    const saveAddHobbyModal = async () => {
+      if (!newHobby.value.trim()) {
+        addHobbyError.value = "Hobby name cannot be empty";
+        return;
+      }
+
+      if (hobbies.value.includes(newHobby.value.trim())) {
+        addHobbyError.value = "You already have this hobby";
+        return;
+      }
+
+      isSubmitting.value = true;
+      addHobbyError.value = "";
+
+      try {
+        const csrfToken = await getCsrfToken();
+        const response = await fetch('/api/add-hobby/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            name: newHobby.value.trim()
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to add hobby');
+        }
+
+        const data = await response.json();
+        hobbies.value.push(newHobby.value.trim());
+        newHobby.value = "";
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('HobbyAddModal'));
+        modal?.hide();
+
+      } catch (error: any) {
+        addHobbyError.value = error.message;
+      } finally {
+        isSubmitting.value = false;
+      }
     };
 
     onMounted(() => {
@@ -203,6 +265,9 @@ export default defineComponent({
       dob,
       hobbies,
       selectedHobby,
+      newHobby,
+      addHobbyError,
+      isSubmitting,
       openProfileEditModal,
       saveProfileEditModal,
       openEditHobbyModal,

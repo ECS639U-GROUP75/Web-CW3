@@ -17,7 +17,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 from django.http import HttpResponse
-from .views import main_spa, register_view, login_view, profile_view, get_users, logout_view
+from .views import main_spa, register_view, login_view, profile_view, get_users, logout_view, add_hobby, get_csrf_token
 
 urlpatterns = [
     path('api/register/', register_view, name='register'),
@@ -25,5 +25,7 @@ urlpatterns = [
     path('api/users-hobbies/', get_users, name='users-hobbies'),
     path('api/profile/', profile_view, name='profile_view'),
     path('api/logout/', logout_view, name='logout'),
+    path('api/add-hobby/', add_hobby, name='add_hobby'),
+    path('api/csrf/', get_csrf_token, name='csrf'),
     path('', main_spa, name='main_spa'),
 ]

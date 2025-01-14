@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.db.models import Count
 from .forms import UserForm
-from .models import User
+from .models import User, Hobby
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.middleware.csrf import get_token
 import json
@@ -118,3 +118,36 @@ def logout_view(request: HttpRequest) -> JsonResponse:
             'message': 'Logged out '
         })
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+def add_hobby(request: HttpRequest) -> JsonResponse:
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+        
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid method'}, status=405)
+        
+    try:
+        data = json.loads(request.body)
+        hobby_name = data.get('name')
+        
+        if not hobby_name:
+            return JsonResponse({'error': 'Hobby name is required'}, status=400)
+            
+        # Create hobby if it doesn't exist
+        hobby, created = Hobby.objects.get_or_create(name=hobby_name)
+        
+        # Add hobby to user's hobbies
+        request.user.Hobbies.add(hobby)
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Hobby added successfully',
+            'hobby': {'name': hobby.name}
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+@ensure_csrf_cookie
+def get_csrf_token(request):
+    return JsonResponse({'csrfToken': get_token(request)})
