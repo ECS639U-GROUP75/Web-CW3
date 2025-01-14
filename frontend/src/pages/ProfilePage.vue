@@ -7,29 +7,45 @@
     {{ title }}
   </div>
   <div class="content">
-    <div>
-      <div class="Table">
-        <h4 class="blue-color">Details</h4>
-        <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-user"></i></b> : {{name}}</div>
-        <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-envelope"></i></b> : {{email}}</div>
-        <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-pen-nib"></i></b> : {{Bio}}</div>
-        <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-calendar-days"></i></b> : {{DOB}}</div>
+    <div class="Banner-section blue-color ">
+      <div id="banner-image">
+        
+      </div>
+      <div id="banner-lower-section" class="hobby-title">
+        <h4 class="blue-color">Username</h4>
+        <button id="add-button"><i class="fa-solid fa-pen"></i> Edit</button>
       </div>
     </div>
-    <div class="Table full-width-table">
-      <h4 class="blue-color">Hobbies</h4>
-      <div class="Table-Row blue-color " v-for="hobby in Hobbies">
-        {{hobby}}
-        <div>
-          <button>
-            <i class="fa-solid fa-pen"></i>
-          </button>
-          <button>
-            <i class="fa-solid fa-dumpster"></i>
-          </button>
+    <div class="bottom-section">
+      <div>
+        <div class="Table">
+          <h4 class="blue-color">Details</h4>
+          <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-user"></i></b> : {{name}}</div>
+          <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-envelope"></i></b> : {{email}}</div>
+          <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-pen-nib"></i></b> : {{Bio}}</div>
+          <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-calendar-days"></i></b> : {{DOB}}</div>
+        </div>
+      </div>
+      <div class="Table full-width-table">
+        
+        <div class="hobby-title">
+          <h4 class="blue-color">Hobbies</h4>
+          <button id="add-button"><i class="fa-solid fa-plus"></i> Add</button>
+        </div>
+        <div class="Table-Row blue-color " v-for="hobby in Hobbies">
+          {{hobby}}
+          <div>
+            <button>
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button>
+              <i class="fa-solid fa-dumpster"></i>
+            </button>
+          </div>
         </div>
       </div>
     </div>
+    
   </div>
   
   
@@ -85,13 +101,32 @@ export default defineComponent({
 {
   width: 100%;
 }
+.hobby-title
+{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.Banner-section
+{
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-radius: 1rem;
+}
+.bottom-section
+{
+  display: flex;
+  felx-direction: row;
+  gap: 1rem;
+}
 .Table
 {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
   border-radius: 0.5rem;
   background-color: white;
+  padding: 1rem;
   
 }
 .Table-Row
@@ -99,14 +134,17 @@ export default defineComponent({
   display: flex;
   flex-direction: row;
   padding: 1rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
   justify-content: space-between;
   border-bottom: black 1pt solid;
 }
 .content
 {
   display: flex;
-  felx-direction: row;
+  flex-direction: column;
   gap: 1rem;
+  
   background-color: #e5e5e5;
   border-radius: 0.5rem;
   padding: 1rem;
@@ -114,7 +152,9 @@ export default defineComponent({
 .Details-item
 {
   padding: 1rem;
-  border-radius: 1rem;
+  border-bottom: 1pt solid #0a53be;
+  margin-left: 1rem;
+  margin-right: 1rem;
 }
 h4
 {
@@ -124,5 +164,26 @@ h4
 {
   color: #0a53be;
 }
-
+#banner-image
+{
+  width: 100%;
+  height: 10rem;
+  border: solid 1pt #0a53be;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+}
+#add-button
+{
+  background-color: #0a53be;
+  border-color: #0a53be;
+  border-radius: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  color: white;
+}
+#banner-lower-section
+{
+  padding: 0.5rem;
+  padding-right: 1rem;
+}
 </style>
