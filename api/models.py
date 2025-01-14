@@ -8,7 +8,6 @@ class User(AbstractUser):
     Hobbies = models.ManyToManyField(
         'Hobby', 
         related_name='users',
-        null=True,
         blank=True
     )
 
