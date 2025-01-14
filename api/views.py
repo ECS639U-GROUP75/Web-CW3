@@ -94,8 +94,21 @@ def get_users(request: HttpRequest) -> JsonResponse:
             'error': str(e)
         }, status=400, content_type='application/json')
     
-def profile_view(request: HttpRequest) -> HttpResponse:
-    pass
+def profile_view(request: HttpRequest) -> JsonResponse:
+    if request.method == 'GET' and request.user.is_authenticated:
+        user = request.user
+        profile_data = {
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
+            'date_of_birth': user.date_of_birth,
+            'bio': user.bio,
+            'hobbies': list(user.Hobbies.values_list('name', flat=True))
+        }
+        return JsonResponse(profile_data)
+    
+    return JsonResponse({'error': 'Unauthorized'}, status=401)
 
 def logout_view(request: HttpRequest) -> JsonResponse:
     if request.method == 'POST':

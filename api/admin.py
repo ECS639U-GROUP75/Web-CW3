@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Hobby, Profile, Friends
+from .models import User, Hobby, Friends
 from .forms import UserForm
 from django.contrib.auth.admin import UserAdmin
 
@@ -14,7 +14,8 @@ class Admin(UserAdmin):
             'Custom Fields', {
                 'fields': (
                     'Hobbies',
-                    'date_of_birth'
+                    'date_of_birth',
+                    'bio'
                 )
             }
         )
@@ -22,5 +23,4 @@ class Admin(UserAdmin):
 
 admin.site.register(User, Admin)
 admin.site.register(Hobby)
-admin.site.register(Profile)
 admin.site.register(Friends)

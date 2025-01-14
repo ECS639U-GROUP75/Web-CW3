@@ -1,18 +1,13 @@
 ﻿<template>
-
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-
   <div class="h3">
     {{ title }}
   </div>
   <div class="content">
     <div class="Banner-section blue-color ">
-      <div id="banner-image">
-        
-      </div>
+      <div id="banner-image"></div>
       <div id="banner-lower-section" class="hobby-title">
-        <h4 class="blue-color">Username</h4>
+        <h4 class="blue-color">{{ username }}</h4>
         <button id="add-button"><i class="fa-solid fa-pen"></i> Edit</button>
       </div>
     </div>
@@ -20,20 +15,19 @@
       <div>
         <div class="Table">
           <h4 class="blue-color">Details</h4>
-          <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-user"></i></b> : {{name}}</div>
-          <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-envelope"></i></b> : {{email}}</div>
-          <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-pen-nib"></i></b> : {{Bio}}</div>
-          <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-calendar-days"></i></b> : {{DOB}}</div>
+          <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-user"></i></b> : {{ name }}</div>
+          <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-envelope"></i></b> : {{ email }}</div>
+          <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-pen-nib"></i></b> : {{ bio }}</div>
+          <div class="Details-item"><b class="blue-color"><i class="fa-solid fa-calendar-days"></i></b> : {{ dob }}</div>
         </div>
       </div>
       <div class="Table full-width-table">
-        
         <div class="hobby-title">
           <h4 class="blue-color">Hobbies</h4>
           <button id="add-button"><i class="fa-solid fa-plus"></i> Add</button>
         </div>
-        <div class="Table-Row blue-color " v-for="hobby in Hobbies">
-          {{hobby}}
+        <div class="Table-Row blue-color " v-for="hobby in hobbies" :key="hobby">
+          {{ hobby }}
           <div>
             <button>
               <i class="fa-solid fa-pen"></i>
@@ -45,15 +39,10 @@
         </div>
       </div>
     </div>
-    
   </div>
-  
-  
-  
-  
-  
+
   <!-- MODAL TEMPLATE -->
-  <div class="modal fade" id="HobbyEditModal"  aria-labelledby="HobbyEditModal" aria-hidden="true">
+  <div class="modal fade" id="HobbyEditModal" aria-labelledby="HobbyEditModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -66,35 +55,58 @@
       </div>
     </div>
   </div>
-  
-  
-  
-  
-  
 </template>
 
-
-
-
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, onMounted, ref } from "vue";
+import { useUserStore } from '../stores/userStore';
 
 export default defineComponent({
-  data() {
+  inheritAttrs: false,
+  setup() {
+    const userStore = useUserStore();
+    const title = ref("Profile");
+    const username = ref("");
+    const name = ref("");
+    const email = ref("");
+    const bio = ref("");
+    const dob = ref("");
+    const hobbies = ref([]);
+
+    const fetchUserProfile = async () => {
+      try {
+        const response = await fetch('/api/profile/');
+        if (!response.ok) {
+          throw new Error('Failed to fetch user profile');
+        }
+        const data = await response.json();
+        username.value = data.username;
+        name.value  = data.first_name + " " + data.last_name;
+        email.value = data.email;
+        bio.value = data.bio;
+        dob.value = data.date_of_birth;
+        hobbies.value = data.hobbies; 
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+
+    onMounted(() => {
+      fetchUserProfile();
+    });
+
     return {
-      title: "Profile",
-      name: "Davide",
-      email : "temp",
-      Bio : "ggson, i am the best there is...",
-      DOB : "random",
-      Hobbies : ["HOBBY1","HOBBY2","HOBBY3","HOBBY4","HOBBY5","HOBBY6","HOBBY7"]
-    }
+      title,
+      username,
+      name,
+      email,
+      bio,
+      dob,
+      hobbies,
+    };
   }
-})
+});
 </script>
-
-
-
 
 <style scoped>
 .full-width-table
@@ -117,7 +129,7 @@ export default defineComponent({
 .bottom-section
 {
   display: flex;
-  felx-direction: row;
+  flex-direction: row;
   gap: 1rem;
 }
 .Table
