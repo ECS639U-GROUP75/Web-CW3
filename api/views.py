@@ -1,13 +1,14 @@
 from django.http import HttpResponse, HttpRequest, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
-from django.db.models import Count
+from django.db.models import Count, F
 from .forms import UserForm
 from .models import User, Hobby
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.middleware.csrf import get_token
 import json
 from django.db import models
+from datetime import date
 
 def main_spa(request: HttpRequest) -> HttpResponse:
     return render(request, 'api/spa/index.html', {})
@@ -79,13 +80,25 @@ def login_view(request: HttpRequest) -> HttpResponse:
 def get_users(request: HttpRequest) -> JsonResponse:
     try:
         logged_in_user = request.user
-        
+        min_age = request.GET.get('min_age', '0')
+        max_age = request.GET.get('max_age', '100')
+
+        min_age = int(min_age) if min_age.isdigit() else 0
+        max_age = int(max_age) if max_age.isdigit() else 100
+
+        current_year = date.today().year
+
         users = User.objects.exclude(id=logged_in_user.id).annotate(
-            common_hobby_count=Count('Hobbies', filter=models.Q(Hobbies__in=logged_in_user.Hobbies.all()))
-        ).values('username', 'first_name', 'last_name', 'common_hobby_count')
-        
+            common_hobby_count=Count('Hobbies', filter=models.Q(Hobbies__in=logged_in_user.Hobbies.all())),
+            age=(current_year - F('date_of_birth__year'))
+        )
+
+        users = users.filter(age__gte=min_age, age__lte=max_age)
+
+        users_data = list(users.values('username', 'first_name', 'last_name', 'common_hobby_count', 'age'))
+
         response = JsonResponse({
-            'users': list(users)
+            'users': users_data
         })
         response['Content-Type'] = 'application/json'
         return response

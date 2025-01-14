@@ -6,6 +6,12 @@
     This is a page to see other users with similar hobbies.
   </div>
 
+  <div class="mb-4">
+    <input type="number" v-model="minAge" placeholder="Min Age" />
+    <input type="number" v-model="maxAge" placeholder="Max Age" />
+    <button @click="fetchUsers">Apply Filter</button>
+  </div>
+
   <div v-if="loading" class="text-center">
     Loading...
   </div>
@@ -21,6 +27,7 @@
           <th>Username</th>
           <th>Full Name</th>
           <th>Common Hobbies</th>
+          <th>Age</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -29,6 +36,7 @@
           <td>{{ user.username }}</td>
           <td>{{ formatFullName(user) }}</td>
           <td>{{ user.common_hobby_count }}</td>
+          <td>{{ user.age }}</td>
           <td>
             <button class="btn btn-primary">Send Friend Request</button>
           </td>
@@ -46,6 +54,7 @@ interface User {
   first_name: string;
   last_name: string;
   common_hobby_count: number;
+  age: number;
 }
 
 export default defineComponent({
@@ -56,6 +65,8 @@ export default defineComponent({
       users: [] as User[],
       error: null as string | null,
       loading: true,
+      minAge: null,
+      maxAge: null,
     };
   },
 
@@ -72,7 +83,7 @@ export default defineComponent({
       this.error = null;
       
       try {
-        const response = await fetch('/api/users-hobbies/');
+        const response = await fetch(`/api/users-hobbies/?min_age=${this.minAge || ''}&max_age=${this.maxAge || ''}`);
         const contentType = response.headers.get("content-type");
         
         if (!response.ok) {
