@@ -63,7 +63,7 @@
             />
           </div>
           <div class="submit-row">
-            <input type="submit" :value="isLogin ? 'Log in' : 'Register'" />
+            <input id="submit" type="submit" :value="isLogin ? 'Log in' : 'Register'" />
           </div>
           <div v-if="error" class="errornote">
             {{ error }}
