@@ -155,6 +155,11 @@ def update_profile(request: HttpRequest) -> JsonResponse:
         user.email = body.get("email")
         user.bio = body.get("bio")
         user.date_of_birth = body.get("dob")
+        
+        new_password = body.get("password")
+        if new_password:
+            user.set_password(new_password)  
+        
         user.save()
         
         profile_data = {
@@ -163,7 +168,7 @@ def update_profile(request: HttpRequest) -> JsonResponse:
             'bio': user.bio,
             'date_of_birth': user.date_of_birth,
         }
-        return JsonResponse(profile_data)
+        return JsonResponse({'success': True, 'profile': profile_data}) 
     return JsonResponse({'error': 'Unauthorized'}, status=401)
 
 def logout_view(request: HttpRequest) -> JsonResponse:

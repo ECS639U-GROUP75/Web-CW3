@@ -63,6 +63,14 @@
             <label for="dob">Date of Birth</label>
             <input class="form-control" type="date" id="dob" v-model="dob" />
           </div>
+          <div>
+            <label for="password">Enter New Password</label>
+            <input class="form-control" type="password" id="password" v-model="password" />
+          </div>
+          <div>
+            <label for="confirm-password">Confirm New Password</label>
+            <input class="form-control" type="password" id="confirm-password" v-model="confirmPassword" />
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary" @click="saveProfileEditModal">Save changes</button>
@@ -120,7 +128,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from "vue";
+import { defineComponent, onMounted, ref, watch } from "vue";
 import { useUserStore } from '../stores/userStore';
 import 'bootstrap';
 import * as bootstrap from 'bootstrap';
@@ -147,6 +155,12 @@ export default defineComponent({
     var temp_dob = "";
     const all_hobbies = ref([]);
     const selectedHobbyOption = ref("");
+    const password = ref("");
+    const confirmPassword = ref("");
+
+    watch(password, (newValue) => {
+      console.log("Password updated:", newValue);
+    });
 
     const fetchUserProfile = async () => {
       try {
@@ -202,34 +216,42 @@ export default defineComponent({
       try {
         const csrfToken = await getCsrfToken();
         const modal = bootstrap.Modal.getInstance(document.getElementById('ProfileEditModal'));
+
+        // Check if passwords match
+        if (password.value !== confirmPassword.value) {
+            alert("Passwords do not match. Please try again.");
+            return;
+        }
+
+        console.log("Password to be sent:", password.value);
         const response = await fetch('/api/update-profile/', {
-          method: 'POST', 
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken 
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            username: username.value,
-            email: email.value,
-            bio: bio.value,
-            dob: dob.value,
-          }),
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken 
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                username: username.value,
+                email: email.value,
+                bio: bio.value,
+                dob: dob.value,
+                password: password.value,
+            }),
         });
-        
+
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to update profile');
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to update profile');
         }
 
         // Update was successful; fetch the updated profile to reflect changes
         const data = await response.json();
-        username.value = data.username;
-        email.value = data.email;
-        bio.value = data.bio;
-        dob.value = data.date_of_birth;
-        
-        
+        username.value = data.profile.username;
+        email.value = data.profile.email;
+        bio.value = data.profile.bio;
+        dob.value = data.profile.date_of_birth;
+
         modal.hide();
         
       } catch (error) {
@@ -327,6 +349,8 @@ export default defineComponent({
       closeProfileEditModal,
       fetchHobbies,
       selectedHobbyOption,
+      password,
+      confirmPassword
     };
   }
 });
