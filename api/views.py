@@ -1,9 +1,9 @@
 from django.http import HttpResponse, HttpRequest, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
-from django.db.models import Count, F
+from django.db.models import Count, F, Q
 from .forms import UserForm
-from .models import User, Hobby
+from .models import User, Hobby, Friends
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.middleware.csrf import get_token
 import json
@@ -173,3 +173,90 @@ def add_hobby(request: HttpRequest) -> JsonResponse:
 @ensure_csrf_cookie
 def get_csrf_token(request):
     return JsonResponse({'csrfToken': get_token(request)})
+
+def get_friend_requests(request: HttpRequest) -> JsonResponse:
+    if request.method == 'GET' and request.user.is_authenticated:
+        requests = Friends.objects.filter(friend=request.user, status='pending').select_related('user')
+        requests_data = [{'id': req.id, 'user__username': req.user.username} for req in requests]
+        return JsonResponse({'requests': requests_data})
+    return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+def get_current_friends(request: HttpRequest) -> JsonResponse:
+    if request.method == 'GET' and request.user.is_authenticated:
+        friends = Friends.objects.filter(
+            (Q(user=request.user) | Q(friend=request.user)),
+            status='accepted'
+        ).select_related('user', 'friend')
+
+        friends_data = []
+        for friendship in friends:
+            if friendship.user == request.user:
+                friend_username = friendship.friend.username
+            else:
+                friend_username = friendship.user.username
+            
+            friends_data.append({'friend__username': friend_username})
+
+        return JsonResponse({'friends': friends_data})
+    
+    return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+def accept_friend_request(request: HttpRequest, request_id: int) -> JsonResponse:
+    if request.method == 'POST' and request.user.is_authenticated:
+        try:
+            friendship = Friends.objects.get(id=request_id, friend=request.user, status='pending')
+            friendship.status = 'accepted'
+            friendship.save()
+            return JsonResponse({'success': True, 'message': 'Friend request accepted'})
+        except Friends.DoesNotExist:
+            return JsonResponse({'error': 'Friend request not found or already accepted'}, status=404)
+    return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+def reject_friend_request(request: HttpRequest, request_id: int) -> JsonResponse:
+    if request.method == 'POST' and request.user.is_authenticated:
+        try:
+            friendship = Friends.objects.get(id=request_id, friend=request.user, status='pending')
+            friendship.status = 'rejected'
+            friendship.save()
+            return JsonResponse({'success': True, 'message': 'Friend request rejected'})
+        except Friends.DoesNotExist:
+            return JsonResponse({'error': 'Friend request not found or already processed'}, status=404)
+    return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+def send_friend_request(request, username):
+    if request.method == 'POST' and request.user.is_authenticated:
+        try:
+            friend_user = User.objects.get(username=username)
+
+            existing_friendship = Friends.objects.filter(
+                user=request.user,
+                friend=friend_user,
+                status='accepted'
+            ).exists()
+
+            if existing_friendship:
+                return JsonResponse({'message': 'Friendship already exists'})
+
+            pending_request = Friends.objects.filter(
+                user=request.user,
+                friend=friend_user,
+                status='pending'
+            ).exists()
+
+            if pending_request:
+                return JsonResponse({'message': 'Friend request already sent'})
+
+            rejected_request = Friends.objects.filter(
+                user=request.user,
+                friend=friend_user,
+                status='rejected'
+            ).exists()
+
+            if rejected_request:
+                return JsonResponse({'message': 'Friend request was rejected previously'})
+
+            Friends.objects.create(user=request.user, friend=friend_user, status='pending')
+            return JsonResponse({ 'message': 'Friend request sent'})
+        except User.DoesNotExist:
+            return JsonResponse({'message': 'User not found'}, status=404)
+    return JsonResponse({'message': 'Unauthorized'}, status=401)

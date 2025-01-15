@@ -39,12 +39,19 @@
           <td>{{ user.common_hobby_count }}</td>
           <td>{{ user.age }}</td>
           <td>
-            <button class="btn btn-primary">Send Friend Request</button>
+            <template v-if="friendRequestStatus[user.username]">
+              <span :style="{ color: friendRequestStatus[user.username].color }">
+                {{ friendRequestStatus[user.username].message }}
+              </span>
+            </template>
+            <template v-else>
+              <button class="btn btn-primary" @click="sendFriendRequest(user.username)">Send Friend Request</button>
+            </template>
           </td>
         </tr>
       </tbody>
     </table>
-    <div class="pagination">
+    <div class="pagination align-items-center mt-4 justify-content-between">
       <button class="btn btn-primary" @click="changePage(currentPage - 1)" :disabled="!hasPrevious">Previous</button>
       <span>Page {{ currentPage }} of {{ totalPages }}</span>
       <button class="btn btn-primary" @click="changePage(currentPage + 1)" :disabled="!hasNext">Next</button>
@@ -53,7 +60,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
+import { getCsrfToken } from '../utils/auth';
 
 interface User {
   username: string;
@@ -77,6 +85,7 @@ export default defineComponent({
       totalPages: 1,
       hasNext: false,
       hasPrevious: false,
+      friendRequestStatus: ref({}),
     };
   },
 
@@ -104,7 +113,6 @@ export default defineComponent({
         const maxAgeValue = this.maxAge !== null ? this.maxAge : 100;
 
         const url = `/api/users-hobbies/?min_age=${minAgeValue}&max_age=${maxAgeValue}&page=${this.currentPage}`;
-        console.log("Fetching users from:", url);
 
         const response = await fetch(url);
         const contentType = response.headers.get("content-type");
@@ -139,6 +147,39 @@ export default defineComponent({
       if (page > 0 && page <= this.totalPages) {
         this.currentPage = page;
         this.fetchUsers();
+      }
+    },
+
+    async sendFriendRequest(username: string) {
+      try {
+        const csrfToken = await getCsrfToken();
+        const response = await fetch(`/api/send-friend-request/${username}/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+          },
+        });
+        const data = await response.json();
+        console.log(data);
+      
+        if (data.message === 'Friend request sent'){
+          this.friendRequestStatus[username] = { message: 'Friend request sent', color: 'green' };
+        } else if (data.message === 'Friendship already exists' ) {
+          this.friendRequestStatus[username] = { message: 'Friendship already exists', color: 'blue' };
+        } else if (data.message === 'Friend request already sent') {
+          this.friendRequestStatus[username] = { message: 'Pending request already exists', color: 'orange' };
+        } else if (data.message === 'Friend request was rejected previously') {
+          this.friendRequestStatus[username] = { message: 'User previously rejected request', color: 'red' };
+        } else if (data.message === 'User not found') {
+          this.friendRequestStatus[username] = { message: 'User not found', color: 'red' };
+        } else if (data.message === 'Unauthorized') {
+          this.friendRequestStatus[username] = { message: 'Unauthorized', color: 'red' };
+        } else {
+          this.friendRequestStatus[username] = { message: 'Error sending friend request', color: 'red' };
+        }
+      } catch (error) {
+        console.error('Error sending friend request:', error);
       }
     },
   },
