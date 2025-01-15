@@ -61,7 +61,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from "vue";
-import { getCsrfToken } from '../utils/auth';
+import { getCsrfToken } from '../utils/auth.ts';
 
 interface User {
   username: string;

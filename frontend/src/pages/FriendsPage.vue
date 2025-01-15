@@ -37,12 +37,21 @@
   
   <script lang="ts">
       import { defineComponent, ref, onMounted } from "vue";
-      import { getCsrfToken } from '../utils/auth';
+      import { getCsrfToken } from '../utils/auth.ts';
+  
+      interface FriendRequest {
+          id: number;
+          user__username: string;
+      }
+  
+      interface CurrentFriend {
+          friend__username: string;
+      }
   
       export default defineComponent({
           setup() {
-              const friendRequests = ref([]);
-              const currentFriends = ref([]);
+              const friendRequests = ref<FriendRequest[]>([]);
+              const currentFriends = ref<CurrentFriend[]>([]);
   
               const fetchFriendRequests = async () => {
                   try {
@@ -51,7 +60,7 @@
                           throw new Error('Failed to fetch friend requests');
                       }
                       const data = await response.json();
-                      friendRequests.value = data.requests;
+                      friendRequests.value = data.requests as FriendRequest[];
                   } catch (error) {
                       console.error('Error fetching friend requests:', error);
                   }
@@ -64,7 +73,7 @@
                           throw new Error('Failed to fetch current friends');
                       }
                       const data = await response.json();
-                      currentFriends.value = data.friends;
+                      currentFriends.value = data.friends as CurrentFriend[];
                   } catch (error) {
                       console.error('Error fetching current friends:', error);
                   }

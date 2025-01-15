@@ -138,7 +138,7 @@ import { defineComponent, onMounted, ref } from "vue";
 import { useUserStore } from '../stores/userStore';
 import 'bootstrap';
 import * as bootstrap from 'bootstrap';
-import { getCsrfToken } from '../utils/auth';
+import { getCsrfToken } from '../utils/auth.ts';
 
 export default defineComponent({
   inheritAttrs: false,
