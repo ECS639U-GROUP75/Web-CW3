@@ -132,6 +132,26 @@ def profile_view(request: HttpRequest) -> JsonResponse:
     
     return JsonResponse({'error': 'Unauthorized'}, status=401)
 
+def update_profile(request: HttpRequest) -> JsonResponse:
+    if request.method == 'POST' and request.user.is_authenticated:
+        user = request.user
+        body = json.loads(request.body)
+        
+        user.username = body.get("username")
+        user.email = body.get("email")
+        user.bio = body.get("bio")
+        user.date_of_birth = body.get("dob")
+        user.save()
+        
+        profile_data = {
+            'username': user.username,
+            'email': user.email,
+            'bio': user.bio,
+            'date_of_birth': user.date_of_birth,
+        }
+        return JsonResponse(profile_data)
+    return JsonResponse({'error': 'Unauthorized'}, status=401)
+
 def logout_view(request: HttpRequest) -> JsonResponse:
     if request.method == 'POST':
         logout(request)

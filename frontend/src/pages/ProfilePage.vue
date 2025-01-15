@@ -198,11 +198,45 @@ export default defineComponent({
       const modal = new bootstrap.Modal(document.getElementById('ProfileEditModal'));
       modal.show();
     };
-    const saveProfileEditModal = () => {
-      console.log("Saving profile:", { username: username.value, email: email.value, bio: bio.value, dob: dob.value });
-      const modal = bootstrap.Modal.getInstance(document.getElementById('ProfileEditModal'));
-      modal.hide();
+    const saveProfileEditModal = async () => {
+      try {
+        const csrfToken = await getCsrfToken();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('ProfileEditModal'));
+        const response = await fetch('/api/update-profile/', {
+          method: 'POST', 
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken 
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            username: username.value,
+            email: email.value,
+            bio: bio.value,
+            dob: dob.value,
+          }),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to update profile');
+        }
+
+        // Update was successful; fetch the updated profile to reflect changes
+        const data = await response.json();
+        username.value = data.username;
+        email.value = data.email;
+        bio.value = data.bio;
+        dob.value = data.date_of_birth;
+        
+        
+        modal.hide();
+        
+      } catch (error) {
+        alert(`Failed to save profile: ${error.message}`);
+      }
     };
+
     const openEditHobbyModal = (hobby) => {
       selectedHobby.value = hobby;
       const modal = new bootstrap.Modal(document.getElementById('HobbyEditModal'));

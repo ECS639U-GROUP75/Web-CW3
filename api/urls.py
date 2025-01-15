@@ -17,7 +17,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 from django.http import HttpResponse
-from .views import main_spa, register_view, login_view, profile_view, get_users, logout_view, add_hobby, get_csrf_token, get_friend_requests, get_current_friends, accept_friend_request, reject_friend_request, send_friend_request
+from .views import main_spa, register_view, login_view, profile_view, get_users, logout_view, add_hobby, get_csrf_token, get_friend_requests, get_current_friends, accept_friend_request, reject_friend_request, send_friend_request, update_profile
 
 urlpatterns = [
     path('api/register/', register_view, name='register'),
@@ -26,6 +26,7 @@ urlpatterns = [
     path('api/profile/', profile_view, name='profile_view'),
     path('api/logout/', logout_view, name='logout'),
     path('api/add-hobby/', add_hobby, name='add_hobby'),
+    path('api/update-profile/', update_profile, name='update_profile'),
     path('api/csrf/', get_csrf_token, name='csrf'),
     path('api/friend-requests/', get_friend_requests, name='get_friend_requests'),
     path('api/current-friends/', get_current_friends, name='get_current_friends'),
