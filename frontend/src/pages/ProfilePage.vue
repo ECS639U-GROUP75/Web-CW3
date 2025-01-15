@@ -26,11 +26,11 @@
           <h4 class="blue-color">Hobbies</h4>
           <button id="add-button" @click="openHobbiesAddModal"><i class="fa-solid fa-plus"></i> Add</button>
         </div>
-        <div class="Table-Row blue-color " v-for="hobby in hobbies" :key="hobby">
+        <div class="Table-Row blue-color" v-for="hobby in hobbies" :key="hobby">
           {{ hobby }}
           <div>
-            <button class="btn btn-primary">
-              <i class="fa-solid fa-dumpster"></i>
+            <button class="btn btn-primary" @click="removeHobby(hobby)">
+              <i class="fa-solid fa-trash"></i>
             </button>
           </div>
         </div>
@@ -158,8 +158,13 @@ export default defineComponent({
     const password = ref("");
     const confirmPassword = ref("");
 
-    watch(password, (newValue) => {
-      console.log("Password updated:", newValue);
+
+    watch(selectedHobbyOption, (newValue) => {
+      if (newValue === 'Other') {
+        newHobby.value = "";
+      } else {
+        newHobby.value = newValue;
+      }
     });
 
     const fetchUserProfile = async () => {
@@ -179,6 +184,7 @@ export default defineComponent({
         console.error('Error fetching user profile:', error);
       }
     };
+
     const fetchHobbies = async () => {
       try {
         const response = await fetch('/api/get_all_hobbies/');
@@ -217,13 +223,12 @@ export default defineComponent({
         const csrfToken = await getCsrfToken();
         const modal = bootstrap.Modal.getInstance(document.getElementById('ProfileEditModal'));
 
-        // Check if passwords match
         if (password.value !== confirmPassword.value) {
             alert("Passwords do not match. Please try again.");
             return;
         }
 
-        console.log("Password to be sent:", password.value);
+        
         const response = await fetch('/api/update-profile/', {
             method: 'POST', 
             headers: {
@@ -245,7 +250,6 @@ export default defineComponent({
             throw new Error(errorData.error || 'Failed to update profile');
         }
 
-        // Update was successful; fetch the updated profile to reflect changes
         const data = await response.json();
         username.value = data.profile.username;
         email.value = data.profile.email;
@@ -266,7 +270,7 @@ export default defineComponent({
     };
 
     const saveEditHobbyModal = () => {
-      console.log("Saving hobby:", selectedHobby.value);
+      
       const modal = bootstrap.Modal.getInstance(document.getElementById('HobbyEditModal'));
       modal.hide();
     };
@@ -323,6 +327,30 @@ export default defineComponent({
       }
     };
 
+    const removeHobby = async (hobby: string) => {
+      try {
+        const csrfToken = await getCsrfToken();
+        const response = await fetch('/api/remove-hobby/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+          },
+          credentials: 'include',
+          body: JSON.stringify({ name: hobby }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to remove hobby');
+        }
+
+        hobbies.value = hobbies.value.filter(h => h !== hobby);
+      } catch (error) {
+        alert(`Failed to remove hobby: ${error.message}`);
+      }
+    };
+
     onMounted(() => {
       fetchUserProfile();
     });
@@ -350,7 +378,8 @@ export default defineComponent({
       fetchHobbies,
       selectedHobbyOption,
       password,
-      confirmPassword
+      confirmPassword,
+      removeHobby
     };
   }
 });

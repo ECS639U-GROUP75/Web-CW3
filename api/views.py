@@ -299,3 +299,22 @@ def send_friend_request(request, username):
         except User.DoesNotExist:
             return JsonResponse({'message': 'User not found'}, status=404)
     return JsonResponse({'message': 'Unauthorized'}, status=401)
+
+def remove_hobby(request: HttpRequest) -> JsonResponse:
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        hobby_name = data.get('name')
+
+        try:
+            hobby = Hobby.objects.get(name=hobby_name)
+            request.user.Hobbies.remove(hobby)
+            return JsonResponse({'success': True, 'message': 'Hobby removed successfully'})
+        except Hobby.DoesNotExist:
+            return JsonResponse({'error': 'Hobby not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid method'}, status=405)

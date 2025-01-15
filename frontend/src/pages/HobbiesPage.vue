@@ -161,7 +161,7 @@ export default defineComponent({
           },
         });
         const data = await response.json();
-        console.log(data);
+        
       
         if (data.message === 'Friend request sent'){
           this.friendRequestStatus[username] = { message: 'Friend request sent', color: 'green' };
