@@ -83,6 +83,12 @@
         <div class="modal-body">
           <div class="form-group">
             <label for="hobby-name">Hobby Name</label>
+            <p>{{ all_hobbies }}</p>
+            <select class="form-control">
+              <option v-for="hobby_title in all_hobbies" :key="hobby_title">{{hobby_title}}</option>
+              <option>Other</option>
+            </select>
+            
             <input 
               type="text" 
               id="hobby-name" 
@@ -104,28 +110,6 @@
           >
             {{ isSubmitting ? 'Adding...' : 'Add Hobby' }}
           </button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL TEMPLATE FOR HOBBY EDIT -->
-  <div class="modal fade" id="HobbyEditModal" aria-labelledby="HobbyEditModal" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1>Edit Hobby</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div>
-            <label for="hobby-name">Hobby Name</label>
-            <input type="text" id="hobby-name" v-model="selectedHobby" />
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" @click="saveEditHobbyModal">Save changes</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         </div>
       </div>
@@ -159,6 +143,7 @@ export default defineComponent({
     var temp_email = "";
     var temp_bio = "";
     var temp_dob = "";
+    var all_hobbies = [];
 
     const fetchUserProfile = async () => {
       try {
@@ -177,6 +162,22 @@ export default defineComponent({
         console.error('Error fetching user profile:', error);
       }
     };
+    const fetchHobbies = async () => {
+      try
+      {
+        const response = await fetch('/api/get_all_hobbies/');
+        if (!response.ok) {
+          throw new Error('Failed to fetch all hobbies');
+        }
+        const data = await response.json();
+        all_hobbies = data.hobbies;
+        return all_hobbies;
+      }
+      catch(error)
+      {
+        console.error('Error fetching Hobbies:', error);
+      }
+    }
     const closeProfileEditModal = () => {
       username.value = temp_username;
       email.value = temp_email;
@@ -250,6 +251,9 @@ export default defineComponent({
     };
 
     const openHobbiesAddModal = () => {
+      
+      fetchHobbies();
+      
       const modal = new bootstrap.Modal(document.getElementById('HobbyAddModal'));
       modal.show();
     };
@@ -316,13 +320,16 @@ export default defineComponent({
       newHobby,
       addHobbyError,
       isSubmitting,
+      all_hobbies,
       openProfileEditModal,
       saveProfileEditModal,
       openEditHobbyModal,
       saveEditHobbyModal,
       openHobbiesAddModal,
       saveAddHobbyModal,
-      closeProfileEditModal
+      closeProfileEditModal,
+      fetchHobbies,
+      
     };
   }
 });
