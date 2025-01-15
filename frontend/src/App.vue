@@ -1,6 +1,7 @@
 <template>
     <main class="container pt-4">
-        <nav v-if="userStore.isAuthenticated">
+        <nav class="nav-container" v-if="userStore.isAuthenticated">
+          <div class="nav-element-container">
             <router-link
                 class="nav-link"
                 :to="{name: 'Profile'}"
@@ -12,20 +13,18 @@
                 class="nav-link"
                 :to="{name: 'Hobbies Page'}"
             >
-                Hobbies
+              Hobbies
             </router-link>
             <router-link
                 class="nav-link"
                 :to="{name: 'Friends Page'}"
-            > 
-                Friends
+            >
+              Friends
             </router-link>
-            
-            <div class="user-info">
-                Welcome, {{ userStore.firstName || userStore.username }}!
-                <button @click="handleLogout" class="btn-logout">Logout</button>
-            </div>
-
+          </div>
+          <div class="user-info">
+              <button @click="handleLogout" class="btn-logout">Logout</button>
+          </div>
         </nav>
         <RouterView class="flex-shrink-0" />
     </main>
@@ -145,7 +144,15 @@ nav {
     border: none;
     cursor: pointer;
 }
-
+.nav-container
+{
+  justify-content: space-between;
+}
+.nav-element-container
+{
+  display: flex;
+  flex-direction: row;
+}
 .btn-logout:hover {
     background-color: #c82333;
 }

@@ -29,7 +29,7 @@
         <div class="Table-Row blue-color " v-for="hobby in hobbies" :key="hobby">
           {{ hobby }}
           <div>
-            <button>
+            <button class="btn btn-primary">
               <i class="fa-solid fa-dumpster"></i>
             </button>
           </div>
@@ -82,16 +82,24 @@
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label for="hobby-name">Hobby Name</label>
-            <input 
-              type="text" 
-              id="hobby-name" 
-              class="form-control" 
-              v-model="newHobby"
-              :class="{'is-invalid': addHobbyError}"
-            />
-            <div class="invalid-feedback" v-if="addHobbyError">
-              {{ addHobbyError }}
+            <label for="hobby-name">Please select an existing hobby</label>
+            <select class="form-control" v-model="selectedHobbyOption">
+              <option v-for="hobby_title in all_hobbies" :key="hobby_title">{{ hobby_title }}</option>
+              <option value="Other">New Hobby</option>
+            </select>
+            
+            <div v-if="selectedHobbyOption === 'Other'">
+              <p class="mt-3 mb-2">Enter new hobby here</p>
+              <input 
+                type="text" 
+                id="hobby-name" 
+                class="form-control" 
+                v-model="newHobby"
+                :class="{'is-invalid': addHobbyError}"
+              />
+              <div class="invalid-feedback" v-if="addHobbyError">
+                {{ addHobbyError }}
+              </div>
             </div>
           </div>
         </div>
@@ -104,28 +112,6 @@
           >
             {{ isSubmitting ? 'Adding...' : 'Add Hobby' }}
           </button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL TEMPLATE FOR HOBBY EDIT -->
-  <div class="modal fade" id="HobbyEditModal" aria-labelledby="HobbyEditModal" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1>Edit Hobby</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div>
-            <label for="hobby-name">Hobby Name</label>
-            <input type="text" id="hobby-name" v-model="selectedHobby" />
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" @click="saveEditHobbyModal">Save changes</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         </div>
       </div>
@@ -159,6 +145,8 @@ export default defineComponent({
     var temp_email = "";
     var temp_bio = "";
     var temp_dob = "";
+    const all_hobbies = ref([]);
+    const selectedHobbyOption = ref("");
 
     const fetchUserProfile = async () => {
       try {
@@ -177,6 +165,18 @@ export default defineComponent({
         console.error('Error fetching user profile:', error);
       }
     };
+    const fetchHobbies = async () => {
+      try {
+        const response = await fetch('/api/get_all_hobbies/');
+        if (!response.ok) {
+          throw new Error('Failed to fetch all hobbies');
+        }
+        const data = await response.json();
+        all_hobbies.value = data.hobbies;
+      } catch (error) {
+        console.error('Error fetching Hobbies:', error);
+      }
+    }
     const closeProfileEditModal = () => {
       username.value = temp_username;
       email.value = temp_email;
@@ -198,11 +198,45 @@ export default defineComponent({
       const modal = new bootstrap.Modal(document.getElementById('ProfileEditModal'));
       modal.show();
     };
-    const saveProfileEditModal = () => {
-      console.log("Saving profile:", { username: username.value, email: email.value, bio: bio.value, dob: dob.value });
-      const modal = bootstrap.Modal.getInstance(document.getElementById('ProfileEditModal'));
-      modal.hide();
+    const saveProfileEditModal = async () => {
+      try {
+        const csrfToken = await getCsrfToken();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('ProfileEditModal'));
+        const response = await fetch('/api/update-profile/', {
+          method: 'POST', 
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken 
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            username: username.value,
+            email: email.value,
+            bio: bio.value,
+            dob: dob.value,
+          }),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to update profile');
+        }
+
+        // Update was successful; fetch the updated profile to reflect changes
+        const data = await response.json();
+        username.value = data.username;
+        email.value = data.email;
+        bio.value = data.bio;
+        dob.value = data.date_of_birth;
+        
+        
+        modal.hide();
+        
+      } catch (error) {
+        alert(`Failed to save profile: ${error.message}`);
+      }
     };
+
     const openEditHobbyModal = (hobby) => {
       selectedHobby.value = hobby;
       const modal = new bootstrap.Modal(document.getElementById('HobbyEditModal'));
@@ -216,6 +250,7 @@ export default defineComponent({
     };
 
     const openHobbiesAddModal = () => {
+      fetchHobbies();
       const modal = new bootstrap.Modal(document.getElementById('HobbyAddModal'));
       modal.show();
     };
@@ -282,13 +317,16 @@ export default defineComponent({
       newHobby,
       addHobbyError,
       isSubmitting,
+      all_hobbies,
       openProfileEditModal,
       saveProfileEditModal,
       openEditHobbyModal,
       saveEditHobbyModal,
       openHobbiesAddModal,
       saveAddHobbyModal,
-      closeProfileEditModal
+      closeProfileEditModal,
+      fetchHobbies,
+      selectedHobbyOption,
     };
   }
 });
