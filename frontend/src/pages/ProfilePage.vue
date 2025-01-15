@@ -29,7 +29,7 @@
         <div class="Table-Row blue-color " v-for="hobby in hobbies" :key="hobby">
           {{ hobby }}
           <div>
-            <button>
+            <button class="btn btn-primary">
               <i class="fa-solid fa-dumpster"></i>
             </button>
           </div>
@@ -82,22 +82,24 @@
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label for="hobby-name">Hobby Name</label>
-            <p>{{ all_hobbies }}</p>
-            <select class="form-control">
-              <option v-for="hobby_title in all_hobbies" :key="hobby_title">{{hobby_title}}</option>
-              <option>Other</option>
+            <label for="hobby-name">Please select an existing hobby</label>
+            <select class="form-control" v-model="selectedHobbyOption">
+              <option v-for="hobby_title in all_hobbies" :key="hobby_title">{{ hobby_title }}</option>
+              <option value="Other">New Hobby</option>
             </select>
             
-            <input 
-              type="text" 
-              id="hobby-name" 
-              class="form-control" 
-              v-model="newHobby"
-              :class="{'is-invalid': addHobbyError}"
-            />
-            <div class="invalid-feedback" v-if="addHobbyError">
-              {{ addHobbyError }}
+            <div v-if="selectedHobbyOption === 'Other'">
+              <p class="mt-3 mb-2">Enter new hobby here</p>
+              <input 
+                type="text" 
+                id="hobby-name" 
+                class="form-control" 
+                v-model="newHobby"
+                :class="{'is-invalid': addHobbyError}"
+              />
+              <div class="invalid-feedback" v-if="addHobbyError">
+                {{ addHobbyError }}
+              </div>
             </div>
           </div>
         </div>
@@ -143,7 +145,8 @@ export default defineComponent({
     var temp_email = "";
     var temp_bio = "";
     var temp_dob = "";
-    var all_hobbies = [];
+    const all_hobbies = ref([]);
+    const selectedHobbyOption = ref("");
 
     const fetchUserProfile = async () => {
       try {
@@ -163,18 +166,14 @@ export default defineComponent({
       }
     };
     const fetchHobbies = async () => {
-      try
-      {
+      try {
         const response = await fetch('/api/get_all_hobbies/');
         if (!response.ok) {
           throw new Error('Failed to fetch all hobbies');
         }
         const data = await response.json();
-        all_hobbies = data.hobbies;
-        return all_hobbies;
-      }
-      catch(error)
-      {
+        all_hobbies.value = data.hobbies;
+      } catch (error) {
         console.error('Error fetching Hobbies:', error);
       }
     }
@@ -251,9 +250,7 @@ export default defineComponent({
     };
 
     const openHobbiesAddModal = () => {
-      
       fetchHobbies();
-      
       const modal = new bootstrap.Modal(document.getElementById('HobbyAddModal'));
       modal.show();
     };
@@ -329,7 +326,7 @@ export default defineComponent({
       saveAddHobbyModal,
       closeProfileEditModal,
       fetchHobbies,
-      
+      selectedHobbyOption,
     };
   }
 });
