@@ -73,7 +73,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" @click="saveProfileEditModal">Save changes</button>
+          <button type="button" id="save-button" class="btn btn-primary" @click="saveProfileEditModal">Save changes</button>
           <button type="button" class="btn btn-secondary" @click="closeProfileEditModal">Close</button>
         </div>
       </div>
@@ -91,8 +91,8 @@
         <div class="modal-body">
           <div class="form-group">
             <label for="hobby-name">Please select an existing hobby</label>
-            <select class="form-control" v-model="selectedHobbyOption">
-              <option v-for="hobby_title in all_hobbies" :key="hobby_title">{{ hobby_title }}</option>
+            <select id="hobby-select" class="form-control" v-model="selectedHobbyOption">
+              <option :id=" hobby_title " :value="hobby_title" v-for="hobby_title in all_hobbies" :key="hobby_title">{{ hobby_title }}</option>
               <option value="Other">New Hobby</option>
             </select>
             
@@ -113,6 +113,7 @@
         </div>
         <div class="modal-footer">
           <button 
+            id="save-button"
             type="button" 
             class="btn btn-primary" 
             @click="saveAddHobbyModal"
@@ -346,7 +347,7 @@ export default defineComponent({
         }
 
         hobbies.value = hobbies.value.filter(h => h !== hobby);
-      } catch (error) {
+      } catch (error: any) {
         alert(`Failed to remove hobby: ${error.message}`);
       }
     };

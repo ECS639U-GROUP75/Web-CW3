@@ -12,7 +12,7 @@
           <tr v-for="request in friendRequests" :key="request.id">
             <td>{{ request.user__username }}</td>
             <td class="d-flex mt-0">
-              <button class="btn btn-primary" @click="acceptRequest(request.id)">Accept</button>
+              <button id="accept-friend-request" class="btn btn-primary" @click="acceptRequest(request.id)">Accept</button>
               <button class="btn btn-danger mx-2" @click="rejectRequest(request.id)">Reject</button>
             </td>
           </tr>

@@ -7,9 +7,9 @@
   </div>
 
   <div class="mb-4" id="filter-container">
-    <input type="number" v-model="minAge" placeholder="Min Age" />
-    <input type="number" v-model="maxAge" placeholder="Max Age" />
-    <button class="btn btn-primary" @click="fetchUsers">Apply Filter</button>
+    <input id="min-age" type="number" v-model="minAge" placeholder="Min Age" />
+    <input id="max-age" type="number" v-model="maxAge" placeholder="Max Age" />
+    <button id="apply-filter" class="btn btn-primary" @click="fetchUsers">Apply Filter</button>
     <button class="btn btn-primary" @click="resetFilter">Reset Filter</button>
   </div>
 
@@ -22,7 +22,7 @@
   </div>
 
   <div v-else class="table-responsive">
-    <table class="table table-striped">
+    <table id="user-table" class="table table-striped">
       <thead>
         <tr>
           <th>Username</th>
@@ -45,7 +45,7 @@
               </span>
             </template>
             <template v-else>
-              <button class="btn btn-primary" @click="sendFriendRequest(user.username)">Send Friend Request</button>
+              <button id="send-friend-request" class="btn btn-primary" @click="sendFriendRequest(user.username)">Send Friend Request</button>
             </template>
           </td>
         </tr>

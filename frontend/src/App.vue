@@ -3,6 +3,7 @@
         <nav class="nav-container" v-if="userStore.isAuthenticated">
           <div class="nav-element-container">
             <router-link
+                id="profile-link"
                 class="nav-link"
                 :to="{name: 'Profile'}"
             >
@@ -10,12 +11,14 @@
             </router-link>
 
             <router-link
+                id="hobbies-link"
                 class="nav-link"
                 :to="{name: 'Hobbies Page'}"
             >
               Hobbies
             </router-link>
             <router-link
+                id="friends-link"
                 class="nav-link"
                 :to="{name: 'Friends Page'}"
             >
