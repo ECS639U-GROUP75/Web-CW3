@@ -26,10 +26,10 @@
           <h4 class="blue-color">Hobbies</h4>
           <button id="add-button" @click="openHobbiesAddModal"><i class="fa-solid fa-plus"></i> Add</button>
         </div>
-        <div class="Table-Row blue-color" v-for="hobby in hobbies" :key="hobby">
-          {{ hobby }}
+        <div class="Table-Row blue-color" v-for="hobby in hobbies" :key="hobby.name">
+          {{ hobby.name }}
           <div>
-            <button class="btn btn-primary" @click="removeHobby(hobby)">
+            <button class="btn btn-primary" @click="removeHobby(hobby.name)">
               <i class="fa-solid fa-trash"></i>
             </button>
           </div>
@@ -130,22 +130,24 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, ref, watch } from "vue";
-import { useUserStore } from '../stores/userStore';
 import 'bootstrap';
 import * as bootstrap from 'bootstrap';
 import { getCsrfToken } from '../utils/auth.ts';
 
+interface Hobby {
+  name: string;
+}
+
 export default defineComponent({
   inheritAttrs: false,
   setup() {
-    const userStore = useUserStore();
     const title = ref("Profile");
     const username = ref("");
     const name = ref("");
     const email = ref("");
     const bio = ref("");
     const dob = ref("");
-    const hobbies = ref<string[]>([]);
+    const hobbies = ref<Hobby[]>([]);
     const selectedHobby = ref("");
     const newHobby = ref("");
     const addHobbyError = ref("");
@@ -180,7 +182,7 @@ export default defineComponent({
         email.value = data.email;
         bio.value = data.bio;
         dob.value = data.date_of_birth;
-        hobbies.value = data.hobbies;
+        hobbies.value = data.hobbies.map((hobby: string) => ({ name: hobby }));
       } catch (error) {
         console.error('Error fetching user profile:', error);
       }
@@ -207,8 +209,11 @@ export default defineComponent({
       temp_email = "";
       temp_bio = "";
       temp_dob = "";
-      const modal = bootstrap.Modal.getInstance(document.getElementById('ProfileEditModal'));
-      modal.hide();
+      const modalElement = document.getElementById('ProfileEditModal');
+      if (modalElement) {
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        modal?.hide();
+      }
     };
     
     const openProfileEditModal = () => {
@@ -216,13 +221,17 @@ export default defineComponent({
       temp_email = email.value;
       temp_bio = bio.value;
       temp_dob = dob.value;
-      const modal = new bootstrap.Modal(document.getElementById('ProfileEditModal'));
-      modal.show();
+      const modalElement = document.getElementById('ProfileEditModal');
+      if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+      }
     };
     const saveProfileEditModal = async () => {
       try {
         const csrfToken = await getCsrfToken();
-        const modal = bootstrap.Modal.getInstance(document.getElementById('ProfileEditModal'));
+        const modalElement = document.getElementById('ProfileEditModal');
+        const modal = modalElement ? bootstrap.Modal.getInstance(modalElement) : null;
 
         if (password.value !== confirmPassword.value) {
             alert("Passwords do not match. Please try again.");
@@ -257,29 +266,38 @@ export default defineComponent({
         bio.value = data.profile.bio;
         dob.value = data.profile.date_of_birth;
 
-        modal.hide();
+        modal?.hide();
         
-      } catch (error) {
+      } catch (error: any) {
         alert(`Failed to save profile: ${error.message}`);
       }
     };
 
-    const openEditHobbyModal = (hobby) => {
+    const openEditHobbyModal = (hobby: string) => {
       selectedHobby.value = hobby;
-      const modal = new bootstrap.Modal(document.getElementById('HobbyEditModal'));
-      modal.show();
+      const modalElement = document.getElementById('HobbyEditModal');
+      if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+      }
     };
 
     const saveEditHobbyModal = () => {
       
-      const modal = bootstrap.Modal.getInstance(document.getElementById('HobbyEditModal'));
-      modal.hide();
+      const modalElement = document.getElementById('HobbyEditModal');
+      if (modalElement) {
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        modal?.hide();
+      }
     };
 
     const openHobbiesAddModal = () => {
       fetchHobbies();
-      const modal = new bootstrap.Modal(document.getElementById('HobbyAddModal'));
-      modal.show();
+      const modalElement = document.getElementById('HobbyAddModal');
+      if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+      }
     };
     const saveAddHobbyModal = async () => {
       if (!newHobby.value.trim()) {
@@ -287,7 +305,7 @@ export default defineComponent({
         return;
       }
 
-      if (hobbies.value.includes(newHobby.value.trim())) {
+      if (hobbies.value.some(hobby => hobby.name === newHobby.value.trim())) {
         addHobbyError.value = "You already have this hobby";
         return;
       }
@@ -314,12 +332,14 @@ export default defineComponent({
           throw new Error(errorData.error || 'Failed to add hobby');
         }
 
-        const data = await response.json();
-        hobbies.value.push(newHobby.value.trim());
+        hobbies.value.push({ name: newHobby.value.trim() });
         newHobby.value = "";
         
-        const modal = bootstrap.Modal.getInstance(document.getElementById('HobbyAddModal'));
-        modal?.hide();
+        const modalElement = document.getElementById('HobbyAddModal');
+        if (modalElement) {
+          const modal = bootstrap.Modal.getInstance(modalElement);
+          modal?.hide();
+        }
 
       } catch (error: any) {
         addHobbyError.value = error.message;
@@ -346,7 +366,7 @@ export default defineComponent({
           throw new Error(errorData.error || 'Failed to remove hobby');
         }
 
-        hobbies.value = hobbies.value.filter(h => h !== hobby);
+        hobbies.value = hobbies.value.filter(h => h.name !== hobby);
       } catch (error: any) {
         alert(`Failed to remove hobby: ${error.message}`);
       }

@@ -71,6 +71,10 @@ interface User {
   age: number;
 }
 
+interface FriendRequestStatus {
+  [key: string]: { message: string; color: string; }
+}
+
 export default defineComponent({
   inheritAttrs: false,
   data() {
@@ -85,7 +89,7 @@ export default defineComponent({
       totalPages: 1,
       hasNext: false,
       hasPrevious: false,
-      friendRequestStatus: ref({}),
+      friendRequestStatus: ref({} as FriendRequestStatus),
     };
   },
 
