@@ -1,6 +1,6 @@
 <template>
     <main class="container pt-4">
-        <nav class="nav-container" v-if="userStore.isAuthenticated">
+        <nav class="nav-container">
           <div class="nav-element-container">
             <router-link
                 id="profile-link"
@@ -47,7 +47,7 @@ export default defineComponent({
         const handleLogout = async () => {
             try {
                 const csrfToken = getCookie('csrftoken') || '';
-                await fetch('/api/logout/', {
+                const response = await fetch('/api/logout/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -55,8 +55,12 @@ export default defineComponent({
                     },
                     credentials: 'include',
                 });
-                userStore.clearUser();
-                router.push('/login');
+                
+                const data = await response.json();
+                if (data.success) {
+                    userStore.clearUser();
+                    window.location.href = data.redirect_url;
+                }
             } catch (err) {
                 console.error('Logout error:', err);
             }
@@ -79,6 +83,7 @@ export default defineComponent({
 
         return {
             userStore,
+            router,
             handleLogout,
         };
     }

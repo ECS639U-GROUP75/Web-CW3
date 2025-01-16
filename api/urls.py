@@ -20,8 +20,9 @@ from django.http import HttpResponse
 from .views import main_spa, register_view, login_view, profile_view, get_users, logout_view, add_hobby, get_csrf_token, get_friend_requests, get_current_friends, accept_friend_request, reject_friend_request, send_friend_request, update_profile, get_all_hobbies, remove_hobby
 
 urlpatterns = [
-    path('api/register/', register_view, name='register'),
-    path('api/login/', login_view, name='login'),
+    path('', main_spa, name='main_spa'),
+    path('register/', register_view, name='register'),
+    path('login/', login_view, name='login'),
     path('api/users-hobbies/', get_users, name='users-hobbies'),
     path('api/profile/', profile_view, name='profile_view'),
     path('api/logout/', logout_view, name='logout'),
@@ -35,5 +36,4 @@ urlpatterns = [
     path('api/send-friend-request/<str:username>/', send_friend_request, name='send_friend_request'),
     path('api/get_all_hobbies/', get_all_hobbies, name='get_all_hobbies'),
     path('api/remove-hobby/', remove_hobby, name='remove_hobby'),
-    path('', main_spa, name='main_spa'),
 ]
