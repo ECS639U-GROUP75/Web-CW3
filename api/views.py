@@ -127,7 +127,9 @@ def update_profile(request: HttpRequest) -> JsonResponse:
         
         new_password = body.get("password")
         if new_password:
-            user.set_password(new_password)  
+            user.set_password(new_password)
+            from django.contrib.auth import update_session_auth_hash
+            update_session_auth_hash(request, user)
         
         user.save()
         
@@ -137,7 +139,7 @@ def update_profile(request: HttpRequest) -> JsonResponse:
             'bio': user.bio,
             'date_of_birth': user.date_of_birth,
         }
-        return JsonResponse({'success': True, 'profile': profile_data}) 
+        return JsonResponse({'success': True, 'profile': profile_data})
     return JsonResponse({'error': 'Unauthorized'}, status=401)
 
 def logout_view(request: HttpRequest) -> JsonResponse:

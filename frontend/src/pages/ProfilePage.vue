@@ -234,30 +234,29 @@ export default defineComponent({
         const modal = modalElement ? bootstrap.Modal.getInstance(modalElement) : null;
 
         if (password.value !== confirmPassword.value) {
-            alert("Passwords do not match. Please try again.");
-            return;
+          alert("Passwords do not match. Please try again.");
+          return;
         }
 
-        
         const response = await fetch('/api/update-profile/', {
-            method: 'POST', 
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken 
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-                username: username.value,
-                email: email.value,
-                bio: bio.value,
-                dob: dob.value,
-                password: password.value,
-            }),
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            username: username.value,
+            email: email.value,
+            bio: bio.value,
+            dob: dob.value,
+            password: password.value,
+          }),
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to update profile');
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to update profile');
         }
 
         const data = await response.json();
@@ -265,6 +264,10 @@ export default defineComponent({
         email.value = data.profile.email;
         bio.value = data.profile.bio;
         dob.value = data.profile.date_of_birth;
+
+        // Clear password fields after successful update
+        password.value = '';
+        confirmPassword.value = '';
 
         modal?.hide();
         

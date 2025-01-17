@@ -163,6 +163,7 @@ class Edit_Test(LiveServerTestCase):
         self.driver.find_element(By.ID, 'dob').clear()
         self.driver.find_element(By.ID, 'dob').send_keys('2000-01-01')
         self.driver.find_element(By.ID, 'save-button').click()
+        print("User edited successfully")
 
         # Wait for redirection to profile page
         WebDriverWait(self.driver, 10).until(
@@ -170,6 +171,7 @@ class Edit_Test(LiveServerTestCase):
         )
 
         self.driver.find_element(By.ID, 'add-button').click()
+        print("Add button clicked")
 
         WebDriverWait(self.driver, 10).until(
         EC.visibility_of_element_located((By.ID, 'HobbyAddModal'))
@@ -185,6 +187,7 @@ class Edit_Test(LiveServerTestCase):
             EC.presence_of_element_located((By.CSS_SELECTOR, '#HobbyAddModal button.btn-primary'))
         )
         add_button.click()
+        print("Hobby added successfully")
         
         # Wait for modal to close
         WebDriverWait(self.driver, 10).until(

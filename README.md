@@ -1,5 +1,9 @@
 # Web-CW3
 
+## Note
+Please run the tests via the command: `python manage.py test api.tests.Test`
+This is to make sure that the tests run in order and maintain state.
+
 ## Group Contribution
 - David: Profile page, editing user information, adding and removing hobbies
 - Ayub: Login and registration, selenium testing
