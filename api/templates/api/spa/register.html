@@ -16,7 +16,7 @@
             {% endif %}
         </div>
         {% endfor %}
-        <button type="submit" class="auth-button">Register</button>
+        <button id="submit" type="submit" class="auth-button">Register</button>
         {% if form.non_field_errors %}
             {% for error in form.non_field_errors %}
                 <p class="error-message">{{ error }}</p>
