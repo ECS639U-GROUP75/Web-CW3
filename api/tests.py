@@ -12,6 +12,7 @@ class Register_Test(LiveServerTestCase):
     def setUp(self):
         
         options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
         service = Service(ChromeDriverManager().install())
         self.driver = webdriver.Chrome(service=service, options=options)
         self.driver.implicitly_wait(10)
@@ -125,6 +126,7 @@ class Edit_Test(LiveServerTestCase):
     def setUp(self):
         
         options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
         service = Service(ChromeDriverManager().install())
         self.driver = webdriver.Chrome(service=service, options=options)
         self.driver.implicitly_wait(10)
@@ -196,6 +198,7 @@ class Send_Request_Test(LiveServerTestCase):
     def setUp(self):
         
         options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
         service = Service(ChromeDriverManager().install())
         self.driver = webdriver.Chrome(service=service, options=options)
         self.driver.implicitly_wait(10)
@@ -205,7 +208,7 @@ class Send_Request_Test(LiveServerTestCase):
         
     def test_Request(self):
         self.driver.get('http://127.0.0.1:8000/login')
-        self.driver.find_element(By.ID, 'username').send_keys('testuser')
+        self.driver.find_element(By.ID, 'username').send_keys('newusername')
         self.driver.find_element(By.ID, 'password').send_keys('testpass123')
         self.driver.find_element(By.ID, 'submit').click()
         
@@ -248,6 +251,7 @@ class Accept_Request_Test(LiveServerTestCase):
     def setUp(self):
         
         options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
         service = Service(ChromeDriverManager().install())
         self.driver = webdriver.Chrome(service=service, options=options)
         self.driver.implicitly_wait(10)
@@ -284,3 +288,78 @@ class Accept_Request_Test(LiveServerTestCase):
         time.sleep(2)
         
         print("Request sent successfully")
+
+
+class Tests(LiveServerTestCase):
+    def setUp(self):
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        service = Service(ChromeDriverManager().install())
+        self.driver = webdriver.Chrome(service=service, options=options)
+        self.driver.implicitly_wait(10)
+
+    def tearDown(self):
+        self.driver.quit()
+
+    def test_all(self):
+        # Run registration test
+        print("\n=== Starting Registration Test ===")
+        register_test = Register_Test()
+        register_test.setUp()
+        try:
+            register_test.test_create_account()
+        finally:
+            register_test.tearDown()
+        print("=== Registration Test Complete ===\n")
+
+        # Run login test
+        print("=== Starting Login Test ===")
+        login_test = Login_Test()
+        login_test.setUp()
+        try:
+            login_test.test_login()
+        finally:
+            login_test.tearDown()
+        print("=== Login Test Complete ===\n")
+
+        # Run age filter test
+        print("=== Starting Age Filter Test ===")
+        filter_test = Age_Filter_Test()
+        filter_test.setUp()
+        try:
+            filter_test.test_age_filter()
+        finally:
+            filter_test.tearDown()
+        print("=== Age Filter Test Complete ===\n")
+
+        # Run edit profile test
+        print("=== Starting Edit Profile Test ===")
+        edit_test = Edit_Test()
+        edit_test.setUp()
+        try:
+            edit_test.test_edit()
+        finally:
+            edit_test.tearDown()
+        print("=== Edit Profile Test Complete ===\n")
+
+        # Run send friend request test
+        print("=== Starting Send Friend Request Test ===")
+        request_test = Send_Request_Test()
+        request_test.setUp()
+        try:
+            request_test.test_Request()
+        finally:
+            request_test.tearDown()
+        print("=== Send Friend Request Test Complete ===\n")
+
+        # Run accept friend request test
+        print("=== Starting Accept Friend Request Test ===")
+        accept_test = Accept_Request_Test()
+        accept_test.setUp()
+        try:
+            accept_test.test_Request()
+        finally:
+            accept_test.tearDown()
+        print("=== Accept Friend Request Test Complete ===\n")
+
+        print("All tests completed successfully!")
