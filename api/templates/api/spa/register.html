@@ -1,9 +1,29 @@
-<h3>Register</h3>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Register</button>
-    {% if error %}
-        <p>{{ error }}</p>
-    {% endif %}
-</form>
+{% load static %}
+<link rel="stylesheet" href="{% static 'api/css/auth.css' %}">
+
+<div class="auth-container">
+    <h2 class="auth-title">Register</h2>
+    <form method="post" class="auth-form">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+            {{ field }}
+            {% if field.errors %}
+                {% for error in field.errors %}
+                    <p class="error-message">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+        {% endfor %}
+        <button id="submit" type="submit" class="auth-button">Register</button>
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+                <p class="error-message">{{ error }}</p>
+            {% endfor %}
+        {% endif %}
+    </form>
+    <div class="auth-link">
+        <p>Already have an account? <a href="/login/">Login here</a></p>
+    </div>
+</div>

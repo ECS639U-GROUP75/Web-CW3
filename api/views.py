@@ -10,63 +10,28 @@ import json
 from django.db import models
 from datetime import date
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
 
 def main_spa(request: HttpRequest) -> HttpResponse:
+    if not request.user.is_authenticated:
+        return redirect('login')
     return render(request, 'api/spa/index.html', {})
 
 def register_view(request: HttpRequest) -> HttpResponse:
-    if request.headers.get('Content-Type') == 'application/json':
-        if request.method == 'POST':
-            try:
-                data = json.loads(request.body)
-                user = User.objects.create_user(
-                    username=data['username'],
-                    password=data['password'],
-                    first_name=data['first_name'],
-                    last_name=data['last_name'],
-                    email=data['email']
-                )
-                user.date_of_birth = data['date_of_birth']
-                user.save()
-                return JsonResponse({
-                    'success': True,
-                    'message': 'Registration successful'
-                })
-            except Exception as e:
-                return JsonResponse({
-                    'success': False,
-                    'message': str(e)
-                }, status=400)
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+    if request.method == 'POST':
+        form = UserForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, authenticate(
+                username=form.cleaned_data['username'],
+                password=form.cleaned_data['password1']
+            ))
+            return redirect('main_spa')
+    else:
+        form = UserForm()
+    return render(request, 'api/spa/register.html', {'form': form})
 
-@ensure_csrf_cookie
 def login_view(request: HttpRequest) -> HttpResponse:
-    if request.headers.get('Content-Type') == 'application/json':
-        if request.method == 'POST':
-            data = json.loads(request.body)
-            username = data.get('username')
-            password = data.get('password')
-            user = authenticate(request, username=username, password=password)
-            
-            if user is not None:
-                login(request, user)
-                return JsonResponse({
-                    'success': True,
-                    'message': 'Login successful',
-                    'user': {
-                        'username': user.username,
-                        'first_name': user.first_name,
-                        'last_name': user.last_name
-                    }
-                })
-            else:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Invalid credentials'
-                }, status=400)
-        
-        return JsonResponse({'csrfToken': get_token(request)})
-    
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
@@ -78,6 +43,7 @@ def login_view(request: HttpRequest) -> HttpResponse:
             return render(request, 'api/spa/login.html', {'error': 'Invalid credentials'})
     return render(request, 'api/spa/login.html', {})
 
+@login_required(login_url='/login/')
 def get_users(request: HttpRequest) -> JsonResponse:
     try:
         logged_in_user = request.user
@@ -116,6 +82,7 @@ def get_users(request: HttpRequest) -> JsonResponse:
             'error': str(e)
         }, status=400, content_type='application/json')
 
+@login_required(login_url='/login/')
 def get_all_hobbies(request: HttpRequest) -> JsonResponse:
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Unauthorized'}, status=401)
@@ -130,6 +97,7 @@ def get_all_hobbies(request: HttpRequest) -> JsonResponse:
             'error': str(e)
         }, status=500)
     
+@login_required(login_url='/login/')
 def profile_view(request: HttpRequest) -> JsonResponse:
     if request.method == 'GET' and request.user.is_authenticated:
         user = request.user
@@ -146,6 +114,7 @@ def profile_view(request: HttpRequest) -> JsonResponse:
     
     return JsonResponse({'error': 'Unauthorized'}, status=401)
 
+@login_required(login_url='/login/')
 def update_profile(request: HttpRequest) -> JsonResponse:
     if request.method == 'POST' and request.user.is_authenticated:
         user = request.user
@@ -176,10 +145,12 @@ def logout_view(request: HttpRequest) -> JsonResponse:
         logout(request)
         return JsonResponse({
             'success': True,
-            'message': 'Logged out '
+            'message': 'Logged out',
+            'redirect_url': '/login/'
         })
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
+@login_required(login_url='/login/')
 def add_hobby(request: HttpRequest) -> JsonResponse:
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Unauthorized'}, status=401)
@@ -213,6 +184,7 @@ def add_hobby(request: HttpRequest) -> JsonResponse:
 def get_csrf_token(request):
     return JsonResponse({'csrfToken': get_token(request)})
 
+@login_required(login_url='/login/')
 def get_friend_requests(request: HttpRequest) -> JsonResponse:
     if request.method == 'GET' and request.user.is_authenticated:
         requests = Friends.objects.filter(friend=request.user, status='pending').select_related('user')
@@ -220,6 +192,7 @@ def get_friend_requests(request: HttpRequest) -> JsonResponse:
         return JsonResponse({'requests': requests_data})
     return JsonResponse({'error': 'Unauthorized'}, status=401)
 
+@login_required(login_url='/login/')
 def get_current_friends(request: HttpRequest) -> JsonResponse:
     if request.method == 'GET' and request.user.is_authenticated:
         friends = Friends.objects.filter(
@@ -240,6 +213,7 @@ def get_current_friends(request: HttpRequest) -> JsonResponse:
     
     return JsonResponse({'error': 'Unauthorized'}, status=401)
 
+@login_required(login_url='/login/')
 def accept_friend_request(request: HttpRequest, request_id: int) -> JsonResponse:
     if request.method == 'POST' and request.user.is_authenticated:
         try:
@@ -251,6 +225,7 @@ def accept_friend_request(request: HttpRequest, request_id: int) -> JsonResponse
             return JsonResponse({'error': 'Friend request not found or already accepted'}, status=404)
     return JsonResponse({'error': 'Unauthorized'}, status=401)
 
+@login_required(login_url='/login/')
 def reject_friend_request(request: HttpRequest, request_id: int) -> JsonResponse:
     if request.method == 'POST' and request.user.is_authenticated:
         try:
@@ -262,6 +237,7 @@ def reject_friend_request(request: HttpRequest, request_id: int) -> JsonResponse
             return JsonResponse({'error': 'Friend request not found or already processed'}, status=404)
     return JsonResponse({'error': 'Unauthorized'}, status=401)
 
+@login_required(login_url='/login/')
 def send_friend_request(request, username):
     if request.method == 'POST' and request.user.is_authenticated:
         try:
@@ -300,6 +276,7 @@ def send_friend_request(request, username):
             return JsonResponse({'message': 'User not found'}, status=404)
     return JsonResponse({'message': 'Unauthorized'}, status=401)
 
+@login_required(login_url='/login/')
 def remove_hobby(request: HttpRequest) -> JsonResponse:
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Unauthorized'}, status=401)

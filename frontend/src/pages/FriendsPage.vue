@@ -55,7 +55,11 @@
   
               const fetchFriendRequests = async () => {
                   try {
-                      const response = await fetch('api/friend-requests/');
+                      const response = await fetch('/api/friend-requests/');
+                      if (response.status === 401) {
+                          window.location.href = '/login/';
+                          return;
+                      }
                       if (!response.ok) {
                           throw new Error('Failed to fetch friend requests');
                       }
@@ -69,6 +73,10 @@
               const fetchCurrentFriends = async () => {
                   try {
                       const response = await fetch('/api/current-friends/');
+                      if (response.status === 401) {
+                          window.location.href = '/login/';
+                          return;
+                      }
                       if (!response.ok) {
                           throw new Error('Failed to fetch current friends');
                       }

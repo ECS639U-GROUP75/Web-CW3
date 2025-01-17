@@ -12,7 +12,6 @@ class Register_Test(LiveServerTestCase):
     def setUp(self):
         
         options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
         service = Service(ChromeDriverManager().install())
         self.driver = webdriver.Chrome(service=service, options=options)
         self.driver.implicitly_wait(10)
@@ -21,28 +20,23 @@ class Register_Test(LiveServerTestCase):
         self.driver.quit()
 
     def test_create_account(self):
-        self.driver.get('http://localhost:5173/login')      
-        toggle_button = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, '.toggle-form a'))
-        )
-        toggle_button.click()
+        self.driver.get('http://127.0.0.1:8000/register/')      
 
-        WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.ID, 'email'))
-        )
-
-        self.driver.find_element(By.ID, 'email').send_keys('test@example.com')
-        self.driver.find_element(By.ID, 'username').send_keys('testuser')
-        self.driver.find_element(By.ID, 'first_name').send_keys('Test')
-        self.driver.find_element(By.ID, 'last_name').send_keys('User')
-        self.driver.find_element(By.ID, 'date_of_birth').send_keys('1990-01-01')
-        self.driver.find_element(By.ID, 'password').send_keys('testpass123')
+        
+        self.driver.find_element(By.ID, 'id_username').send_keys('testuser')
+        self.driver.find_element(By.ID, 'id_first_name').send_keys('Test')
+        self.driver.find_element(By.ID, 'id_last_name').send_keys('User')
+        self.driver.find_element(By.ID, 'id_email').send_keys('test@example.com')
+        self.driver.find_element(By.ID, 'id_date_of_birth').send_keys('1990-01-01')
+        self.driver.find_element(By.ID, 'id_password1').send_keys('testpass123')
+        self.driver.find_element(By.ID, 'id_password2').send_keys('testpass123')
 
         # Submit the form
         self.driver.find_element(By.ID, 'submit').click()
 
+        time.sleep(2)
         # Verify that the user is redirected to the login page
-        self.assertEqual(self.driver.current_url, 'http://localhost:5173/login')
+        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/')
         print("User registered successfully")
 
 
@@ -60,17 +54,17 @@ class Login_Test(LiveServerTestCase):
         self.driver.quit()
         
     def test_login(self):
-        self.driver.get('http://localhost:5173/login')
+        self.driver.get('http://127.0.0.1:8000/login/')
         self.driver.find_element(By.ID, 'username').send_keys('testuser')
         self.driver.find_element(By.ID, 'password').send_keys('testpass123')
         self.driver.find_element(By.ID, 'submit').click()
         
         # Wait for redirection to profile page
         WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://localhost:5173/profile'
+            lambda driver: driver.current_url == 'http://127.0.0.1:8000/'
         )
         
-        self.assertEqual(self.driver.current_url, 'http://localhost:5173/profile')
+        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/')
         print("User logged in successfully")
 
 
@@ -88,26 +82,26 @@ class Age_Filter_Test(LiveServerTestCase):
         self.driver.quit()
         
     def test_age_filter(self):
-        self.driver.get('http://localhost:5173/login')
+        self.driver.get('http://127.0.0.1:8000/login')
         self.driver.find_element(By.ID, 'username').send_keys('testuser')
         self.driver.find_element(By.ID, 'password').send_keys('testpass123')
         self.driver.find_element(By.ID, 'submit').click()
         
         WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://localhost:5173/profile'
+            lambda driver: driver.current_url == 'http://127.0.0.1:8000/'
         )
         
-        self.assertEqual(self.driver.current_url, 'http://localhost:5173/profile')
+        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/')
         self.driver.find_element(By.ID, 'hobbies-link').click()
 
         print("Current URL:", self.driver.current_url)
         
         
         WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://localhost:5173/Hobbies'
+            lambda driver: driver.current_url == 'http://127.0.0.1:8000/Hobbies/'
         )
         
-        self.assertEqual(self.driver.current_url, 'http://localhost:5173/Hobbies')
+        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/Hobbies/')
         self.driver.find_element(By.ID, 'min-age').send_keys('18')
         self.driver.find_element(By.ID, 'max-age').send_keys('30')
         self.driver.find_element(By.ID, 'apply-filter').click()
@@ -139,17 +133,17 @@ class Edit_Test(LiveServerTestCase):
         self.driver.quit()
         
     def test_edit(self):
-        self.driver.get('http://localhost:5173/login')
-        self.driver.find_element(By.ID, 'username').send_keys('newusername')
+        self.driver.get('http://127.0.0.1:8000/login')
+        self.driver.find_element(By.ID, 'username').send_keys('testuser')
         self.driver.find_element(By.ID, 'password').send_keys('testpass123')
         self.driver.find_element(By.ID, 'submit').click()
         
         # Wait for redirection to profile page
         WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://localhost:5173/profile'
+            lambda driver: driver.current_url == 'http://127.0.0.1:8000/'
         )
         
-        self.assertEqual(self.driver.current_url, 'http://localhost:5173/profile')
+        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/')
         print("User logged in successfully")
 
         self.driver.find_element(By.ID, 'edit-button').click()
@@ -170,7 +164,7 @@ class Edit_Test(LiveServerTestCase):
 
         # Wait for redirection to profile page
         WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://localhost:5173/profile'
+            lambda driver: driver.current_url == 'http://127.0.0.1:8000/'
         )
 
         self.driver.find_element(By.ID, 'add-button').click()
@@ -194,8 +188,8 @@ class Edit_Test(LiveServerTestCase):
         WebDriverWait(self.driver, 10).until(
             EC.invisibility_of_element_located((By.ID, 'HobbyAddModal'))
         )
-        self.assertEqual(self.driver.current_url, 'http://localhost:5173/profile')
-        print("User edited successfully")
+        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/')
+        print("User edited successfully revert username")
 
 
 class Send_Request_Test(LiveServerTestCase):
@@ -210,17 +204,17 @@ class Send_Request_Test(LiveServerTestCase):
         self.driver.quit()
         
     def test_Request(self):
-        self.driver.get('http://localhost:5173/login')
+        self.driver.get('http://127.0.0.1:8000/login')
         self.driver.find_element(By.ID, 'username').send_keys('testuser')
         self.driver.find_element(By.ID, 'password').send_keys('testpass123')
         self.driver.find_element(By.ID, 'submit').click()
         
         # Wait for redirection to profile page
         WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://localhost:5173/profile'
+            lambda driver: driver.current_url == 'http://127.0.0.1:8000/'
         )
         
-        self.assertEqual(self.driver.current_url, 'http://localhost:5173/profile')
+        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/')
         print("User logged in successfully")
 
         self.driver.find_element(By.ID, 'hobbies-link').click()
@@ -228,10 +222,10 @@ class Send_Request_Test(LiveServerTestCase):
         print("Current URL:", self.driver.current_url)
         
         WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://localhost:5173/Hobbies'
+            lambda driver: driver.current_url == 'http://127.0.0.1:8000/Hobbies/'
         )
         
-        self.assertEqual(self.driver.current_url, 'http://localhost:5173/Hobbies')
+        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/Hobbies/')
         
         # Wait for the table to load
         WebDriverWait(self.driver, 10).until(
@@ -262,17 +256,17 @@ class Accept_Request_Test(LiveServerTestCase):
         self.driver.quit()
         
     def test_Request(self):
-        self.driver.get('http://localhost:5173/login')
+        self.driver.get('http://127.0.0.1:8000/login')
         self.driver.find_element(By.ID, 'username').send_keys('MusicVibes09')
         self.driver.find_element(By.ID, 'password').send_keys('M1Us=s5%0A<,')
         self.driver.find_element(By.ID, 'submit').click()
         
         
         WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://localhost:5173/profile'
+            lambda driver: driver.current_url == 'http://127.0.0.1:8000/'
         )
         
-        self.assertEqual(self.driver.current_url, 'http://localhost:5173/profile')
+        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/')
         print("User logged in successfully")
 
         self.driver.find_element(By.ID, 'friends-link').click()
@@ -280,10 +274,10 @@ class Accept_Request_Test(LiveServerTestCase):
         print("Current URL:", self.driver.current_url)
         
         WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://localhost:5173/friends'
+            lambda driver: driver.current_url == 'http://127.0.0.1:8000/friends/'
         )
         
-        self.assertEqual(self.driver.current_url, 'http://localhost:5173/friends')
+        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/friends/')
         
         self.driver.find_element(By.ID, 'accept-friend-request').click()
 
