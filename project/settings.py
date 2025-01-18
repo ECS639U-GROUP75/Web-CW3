@@ -164,6 +164,3 @@ if DEBUG:
         'x-requested-with',
     ]
 
-# Disable test discovery
-TEST_RUNNER = 'django.test.runner.DiscoverRunner'
-TEST_DISCOVER_PATTERNS = []

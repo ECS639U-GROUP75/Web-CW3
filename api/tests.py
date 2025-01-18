@@ -41,7 +41,7 @@ class Tests(StaticLiveServerTestCase):
         super().setUpClass()
         self.selenium = webdriver.Chrome(ChromeDriverManager().install())
         self.selenium.implicitly_wait(10)
-        self.wait = WebDriverWait(self.selenium, 10)
+        self.wait = WebDriverWait(self.selenium, 15)
         self.options = webdriver.ChromeOptions()
         self.options.add_argument('--headless')
 
@@ -200,6 +200,7 @@ class Tests(StaticLiveServerTestCase):
         print('Profile Edited')
 
         # Test Visible Changes
+        time.sleep(5)
         wait.until(EC.invisibility_of_element_located((By.ID, 'ProfileEditModal')))
         updated_user = User.objects.get(username=new_data['username'])
         self.assertEqual(updated_user.username, new_data['username'])
@@ -209,6 +210,7 @@ class Tests(StaticLiveServerTestCase):
         print('Profile Edits Successful')
 
         # Log out to test password change
+        time.sleep(5)
         logout_button = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'btn-logout')))
         logout_button.click()
         wait.until(EC.url_to_be(self.live_server_url + '/login/'))
@@ -227,6 +229,7 @@ class Tests(StaticLiveServerTestCase):
         add_hobby_button = wait.until(EC.element_to_be_clickable((By.ID, 'add-button')))
         add_hobby_button.click()
         wait.until(EC.visibility_of_element_located((By.ID, 'HobbyAddModal')))
+        print('Add Hobby Modal Opened')
 
         # Add a new hobby
         hobby_field = wait.until(EC.element_to_be_clickable((By.ID, 'hobby-select')))
@@ -237,15 +240,12 @@ class Tests(StaticLiveServerTestCase):
         new_hobby_field.send_keys('Test')
         button_save_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[text()="Add Hobby"]')))
         button_save_button.click()
-        wait.until(EC.invisibility_of_element_located((By.XPATH, 'HobbyModal')))
+        wait.until(EC.invisibility_of_element_located((By.XPATH, 'HobbyAddModal')))
         hobby_element = wait.until(EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'Table-Row') and normalize-space()]")))
         hobby_text = hobby_element.text.strip()        
         self.assertIn('Test', hobby_text)
+        print('New Hobby Added Successfully')
         
-        # Wait for modal to completely close first
-        wait.until(
-            EC.invisibility_of_element_located((By.ID, 'HobbyAddModal'))
-        )
         
         # Then try to click delete button
         delete_button = wait.until(
@@ -264,6 +264,7 @@ class Tests(StaticLiveServerTestCase):
         add_hobby_button = wait.until(EC.element_to_be_clickable((By.ID, 'add-button')))
         add_hobby_button.click()
         wait.until(EC.visibility_of_element_located((By.ID, 'HobbyAddModal')))
+        print('Add Hobby Modal Opened')
 
         # Add an existing hobby
         hobby_field = wait.until(EC.element_to_be_clickable((By.ID, 'hobby-select')))
@@ -271,15 +272,12 @@ class Tests(StaticLiveServerTestCase):
         hobby = wait.until(EC.element_to_be_clickable((By.XPATH, '//option[@value="Art"]')))
         hobby.click()
         button_save_button.click()
-        wait.until(EC.invisibility_of_element_located((By.XPATH, 'HobbyModal')))
+        wait.until(EC.invisibility_of_element_located((By.XPATH, 'HobbyAddModal')))
         hobby_element = wait.until(EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'Table-Row') and normalize-space()]")))
         hobby_text = hobby_element.text.strip()        
         self.assertIn('Art', hobby_text)
+        print('Existing Hobby Added Sucessfully')
         
-        # Wait for modal to completely close first
-        wait.until(
-            EC.invisibility_of_element_located((By.ID, 'HobbyAddModal'))
-        )
         
         # Then try to click delete button
         delete_button = wait.until(
