@@ -143,9 +143,11 @@ if DEBUG:
     CORS_ALLOW_CREDENTIALS = True
     CORS_ALLOWED_ORIGINS = [
         "http://localhost:5173",
+        "https://group-75-web-apps-ec22771.apps.a.comp-teach.qmul.ac.uk"
     ]
     CSRF_TRUSTED_ORIGINS = [
         "http://localhost:5173",
+        "https://group-75-web-apps-ec22771.apps.a.comp-teach.qmul.ac.uk"
     ]
     CORS_ALLOW_METHODS = [
         'GET',
