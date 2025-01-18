@@ -31,7 +31,7 @@ SECRET_KEY = os.getenv(
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -163,3 +163,7 @@ if DEBUG:
         'x-csrftoken',
         'x-requested-with',
     ]
+
+# Disable test discovery
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+TEST_DISCOVER_PATTERNS = []

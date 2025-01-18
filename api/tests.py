@@ -1,368 +1,453 @@
-from django.test import LiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from django.test.utils import override_settings
+from django.test.runner import DiscoverRunner
+from django.contrib.auth import get_user_model
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import Select
 from webdriver_manager.chrome import ChromeDriverManager
-import time
+from .models import Hobby
+import datetime, time, warnings
 
-class Register_Test(LiveServerTestCase):
+TEST_DB = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+        'TEST': {
+            'NAME': None,
+        }
+    }
+}
+
+class CustomTestRunner(DiscoverRunner):
+    def setup_databases(self, **kwargs):
+        return super().setup_databases(**kwargs)
+    
+    def teardown_databases(self, old_config, **kwargs):
+        super().teardown_databases(old_config, **kwargs)
+
+@override_settings(DATABASES=TEST_DB, TEST_RUNNER='api.tests.CustomTestRunner')
+class Tests(StaticLiveServerTestCase):
+    
+    @classmethod
     def setUp(self):
-        
-        options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
-        service = Service(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(service=service, options=options)
-        self.driver.implicitly_wait(10)
+        warnings.filterwarnings(
+            'ignore',
+            message='Overriding setting DATABASES can lead to unexpected behavior.',
+            category=UserWarning
+        )
+        super().setUpClass()
+        self.selenium = webdriver.Chrome(ChromeDriverManager().install())
+        self.selenium.implicitly_wait(10)
+        self.wait = WebDriverWait(self.selenium, 10)
+        self.options = webdriver.ChromeOptions()
+        self.options.add_argument('--headless')
 
+        self.test_user_1 = {
+            'username': 'newuser1',
+            'first_name': 'New',
+            'last_name': 'One',
+            'email': 'newuser1@test.com',
+            'date_of_birth': '1990-01-01',
+            'password': '%405AQOf)2gA'
+        }
+
+        self.test_user_2 = {
+            'username': 'newuser2',
+            'first_name': 'New',
+            'last_name': 'Two',
+            'email': 'newuser2@test.com',
+            'date_of_birth': '1990-01-01',
+            'password': 'yUNH#73^0ds_'
+        }
+        
+    def form_date_formate(self, date):
+        new_date = datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%m%d%Y')
+        return new_date 
+    
+    @classmethod
     def tearDown(self):
-        self.driver.quit()
+        User = get_user_model()
+        User.objects.all().delete()
+        self.selenium.quit()
+        super().tearDownClass()
 
-    def test_create_account(self):
-        self.driver.get('http://127.0.0.1:8000/register/')      
-
+    def test_01_register(self):
+        print('\n\n---Register Test---')
+        self.selenium.get(f'{self.live_server_url}/register/')
         
-        self.driver.find_element(By.ID, 'id_username').send_keys('testuser')
-        self.driver.find_element(By.ID, 'id_first_name').send_keys('Test')
-        self.driver.find_element(By.ID, 'id_last_name').send_keys('User')
-        self.driver.find_element(By.ID, 'id_email').send_keys('test@example.com')
-        self.driver.find_element(By.ID, 'id_date_of_birth').send_keys('1990-01-01')
-        self.driver.find_element(By.ID, 'id_password1').send_keys('testpass123')
-        self.driver.find_element(By.ID, 'id_password2').send_keys('testpass123')
-
-        # Submit the form
-        self.driver.find_element(By.ID, 'submit').click()
-
-        time.sleep(2)
-        # Verify that the user is redirected to the login page
-        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/')
-        print("User registered successfully")
-
-
-
-class Login_Test(LiveServerTestCase):
-    def setUp(self):
+        wait = WebDriverWait(self.selenium, 10)
         
-        options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
-        service = Service(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(service=service, options=options)
-        self.driver.implicitly_wait(10)
+        username_field = wait.until(EC.presence_of_element_located((By.ID, 'id_username')))
+        username_field.send_keys(self.test_user_1['username'])
+        
+        first_name_field = wait.until(EC.presence_of_element_located((By.ID, 'id_first_name')))
+        first_name_field.send_keys(self.test_user_1['first_name'])
+        
+        last_name_field = wait.until(EC.presence_of_element_located((By.ID, 'id_last_name')))
+        last_name_field.send_keys(self.test_user_1['last_name'])
+        
+        email_field = wait.until(EC.presence_of_element_located((By.ID, 'id_email')))
+        email_field.send_keys(self.test_user_1['email'])
+        
+        dob_field = wait.until(EC.presence_of_element_located((By.ID, 'id_date_of_birth')))
+        dob_field.send_keys(self.form_date_formate(self.test_user_1['date_of_birth']))
+        
+        password1_field = wait.until(EC.presence_of_element_located((By.ID, 'id_password1')))
+        password1_field.send_keys(self.test_user_1['password'])
+        
+        password2_field = wait.until(EC.presence_of_element_located((By.ID, 'id_password2')))
+        password2_field.send_keys(self.test_user_1['password'])
+        
+        submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'submit')))
+        submit_button.click()
+        print('submit button clicked')
+        
+        print(self.live_server_url)
+        wait.until(EC.url_to_be(self.live_server_url + '/'))
+        
+        User = get_user_model()
+        try:
+            new_user = User.objects.get(username=self.test_user_1['username'])
+            self.assertEqual(new_user.email, self.test_user_1['email'])
+            self.assertEqual(new_user.first_name, self.test_user_1['first_name'])
+            self.assertEqual(new_user.last_name, self.test_user_1['last_name'])
+            self.assertEqual(new_user.date_of_birth.strftime('%Y-%m-%d'), '1990-01-01')
+            print('Register Test Passed')
+        except User.DoesNotExist:
+            self.fail('User was not created in database')
 
-    def tearDown(self):
-        self.driver.quit()
+    def test_02_login(self):
+        # Test Setup
+        print('\n\n---Login Test---')
+        User = get_user_model()
+        User.objects.create_user(**self.test_user_1)
+        self.selenium.get(f'{self.live_server_url}/login/')
+        wait = WebDriverWait(self.selenium, 10)
         
-    def test_login(self):
-        self.driver.get('http://127.0.0.1:8000/login/')
-        self.driver.find_element(By.ID, 'username').send_keys('testuser')
-        self.driver.find_element(By.ID, 'password').send_keys('testpass123')
-        self.driver.find_element(By.ID, 'submit').click()
+        # Login
+        username_field = wait.until(EC.presence_of_element_located((By.ID, 'username')))
+        username_field.send_keys(self.test_user_1['username'])
+        password_field = wait.until(EC.presence_of_element_located((By.ID, 'password')))
+        password_field.send_keys(self.test_user_1['password'])
+        submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'submit')))
+        submit_button.click()
         
-        # Wait for redirection to profile page
-        WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://127.0.0.1:8000/'
-        )
-        
-        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/')
-        print("User logged in successfully")
+        # Wait for the page to load
+        wait.until(EC.url_to_be(self.live_server_url + '/'))
 
+        try:
+            self.selenium.find_element(By.CLASS_NAME, 'btn-logout')
+            print('Login Test Passed')
+        except:
+            self.fail('User was not logged in')
 
+    def test_03_edit_profile(self):
+        # Test Setup
+        print('\n\n---Edit Profile Test---')
+        User = get_user_model()
+        User.objects.create_user(**self.test_user_1)
+        new_data = {
+            'username': 'newusername',
+            'email': 'newemail@new.com',
+            'bio': 'This is my new bio',
+            'dob': '2000-01-01',
+            'password': 'newpassword'
+        }
+        self.test_Hobby = Hobby.objects.create(name='Art')
+        self.selenium.get(f'{self.live_server_url}/login/')
+        wait = WebDriverWait(self.selenium, 10)
+        
+        # Login
+        username_field = wait.until(EC.presence_of_element_located((By.ID, 'username')))
+        username_field.send_keys(self.test_user_1['username'])
+        password_field = wait.until(EC.presence_of_element_located((By.ID, 'password')))
+        password_field.send_keys(self.test_user_1['password'])
+        submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'submit')))
+        submit_button.click()
+        print('Logged in as User 1')
+        
+        # Wait for the page to load and click the edit button
+        wait.until(EC.url_to_be(self.live_server_url + '/'))
+        edit_button = wait.until(EC.element_to_be_clickable((By.ID, 'edit-button')))
+        edit_button.click()
+        wait.until(EC.visibility_of_element_located((By.ID, 'ProfileEditModal')))
+        print('Edit Modal Opened')
 
-class Age_Filter_Test(LiveServerTestCase):
-    def setUp(self):
-        
-        options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
-        service = Service(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(service=service, options=options)
-        self.driver.implicitly_wait(10)
+        # Edit the profile
+        edit_username_field = wait.until(EC.presence_of_element_located((By.ID, 'username')))
+        edit_username_field.clear()
+        edit_username_field.send_keys(new_data['username'])
+        edit_email_field = wait.until(EC.presence_of_element_located((By.ID, 'email')))
+        edit_email_field.clear()
+        edit_email_field.send_keys(new_data['email'])
+        edit_bio_field = wait.until(EC.presence_of_element_located((By.ID, 'bio')))
+        edit_bio_field.clear()
+        edit_bio_field.send_keys(new_data['bio'])
+        edit_dob_field = wait.until(EC.presence_of_element_located((By.ID, 'dob')))
+        edit_dob_field.clear()
+        edit_dob_field.send_keys(self.form_date_formate(new_data['dob']))
+        edit_password1_field = wait.until(EC.presence_of_element_located((By.ID, 'password')))
+        edit_password1_field.clear()
+        edit_password1_field.send_keys(new_data['password'])
+        edit_password2_field = wait.until(EC.presence_of_element_located((By.ID, 'confirm-password')))
+        edit_password2_field.clear()
+        edit_password2_field.send_keys(new_data['password'])
+        save_button = wait.until(EC.element_to_be_clickable((By.ID, 'save-button')))
+        save_button.click()
+        print('Profile Edited')
 
-    def tearDown(self):
-        self.driver.quit()
-        
-    def test_age_filter(self):
-        self.driver.get('http://127.0.0.1:8000/login')
-        self.driver.find_element(By.ID, 'username').send_keys('testuser')
-        self.driver.find_element(By.ID, 'password').send_keys('testpass123')
-        self.driver.find_element(By.ID, 'submit').click()
-        
-        WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://127.0.0.1:8000/'
-        )
-        
-        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/')
-        self.driver.find_element(By.ID, 'hobbies-link').click()
+        # Test Visible Changes
+        wait.until(EC.invisibility_of_element_located((By.ID, 'ProfileEditModal')))
+        updated_user = User.objects.get(username=new_data['username'])
+        self.assertEqual(updated_user.username, new_data['username'])
+        self.assertEqual(updated_user.email, new_data['email'])
+        self.assertEqual(updated_user.bio, new_data['bio'])
+        self.assertEqual(updated_user.date_of_birth.strftime('%Y-%m-%d'), new_data['dob'])
+        print('Profile Edits Successful')
 
-        print("Current URL:", self.driver.current_url)
-        
-        
-        WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://127.0.0.1:8000/Hobbies/'
-        )
-        
-        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/Hobbies/')
-        self.driver.find_element(By.ID, 'min-age').send_keys('18')
-        self.driver.find_element(By.ID, 'max-age').send_keys('30')
-        self.driver.find_element(By.ID, 'apply-filter').click()
-        
-        WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.ID, 'user-table'))
-        )
-        
-        user_rows = self.driver.find_elements(By.CSS_SELECTOR, 'tbody tr')
-        self.assertGreater(len(user_rows), 0, "No users found in the filtered results")
-        for row in user_rows:
-            age_cell = row.find_elements(By.TAG_NAME, 'td')[3]  
-            age = int(age_cell.text)
-            self.assertGreaterEqual(age, 18, f"Found user with age {age} below minimum age 18")
-            print(f"Found user with age {age} between 18 and 30")
-            self.assertLessEqual(age, 30, f"Found user with age {age} above maximum age 30")
+        # Log out to test password change
+        logout_button = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'btn-logout')))
+        logout_button.click()
+        wait.until(EC.url_to_be(self.live_server_url + '/login/'))
+        username_field = wait.until(EC.presence_of_element_located((By.ID, 'username')))
+        username_field.send_keys(new_data['username'])
+        password_field = wait.until(EC.presence_of_element_located((By.ID, 'password')))
+        password_field.send_keys(new_data['password'])
+        submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'submit')))
+        submit_button.click()
+        wait.until(EC.url_to_be(self.live_server_url + '/'))
+        self.selenium.find_element(By.CLASS_NAME, 'btn-logout')
+        print('Log in With New Password Successful')
 
+        # Add Hobby Test
+        # Click the add hobby button
+        add_hobby_button = wait.until(EC.element_to_be_clickable((By.ID, 'add-button')))
+        add_hobby_button.click()
+        wait.until(EC.visibility_of_element_located((By.ID, 'HobbyAddModal')))
 
-       
-class Edit_Test(LiveServerTestCase):
-    def setUp(self):
+        # Add a new hobby
+        hobby_field = wait.until(EC.element_to_be_clickable((By.ID, 'hobby-select')))
+        hobby_field.click()
+        hobby = wait.until(EC.element_to_be_clickable((By.XPATH, '//option[@value="Other"]')))
+        hobby.click()
+        new_hobby_field = wait.until(EC.presence_of_element_located((By.ID, 'hobby-name')))
+        new_hobby_field.send_keys('Test')
+        button_save_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[text()="Add Hobby"]')))
+        button_save_button.click()
+        wait.until(EC.invisibility_of_element_located((By.XPATH, 'HobbyModal')))
+        hobby_element = wait.until(EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'Table-Row') and normalize-space()]")))
+        hobby_text = hobby_element.text.strip()        
+        self.assertIn('Test', hobby_text)
         
-        options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
-        service = Service(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(service=service, options=options)
-        self.driver.implicitly_wait(10)
-
-    def tearDown(self):
-        self.driver.quit()
-        
-    def test_edit(self):
-        self.driver.get('http://127.0.0.1:8000/login')
-        self.driver.find_element(By.ID, 'username').send_keys('testuser')
-        self.driver.find_element(By.ID, 'password').send_keys('testpass123')
-        self.driver.find_element(By.ID, 'submit').click()
-        
-        # Wait for redirection to profile page
-        WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://127.0.0.1:8000/'
-        )
-        
-        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/')
-        print("User logged in successfully")
-
-        self.driver.find_element(By.ID, 'edit-button').click()
-
-        WebDriverWait(self.driver, 10).until(
-        EC.visibility_of_element_located((By.ID, 'ProfileEditModal'))
-        )
-
-        self.driver.find_element(By.ID, 'username').clear()
-        self.driver.find_element(By.ID, 'username').send_keys('newusername')
-        self.driver.find_element(By.ID, 'bio').clear()
-        self.driver.find_element(By.ID, 'bio').send_keys('New bio')
-        self.driver.find_element(By.ID, 'email').clear()
-        self.driver.find_element(By.ID, 'email').send_keys('newemail@example.com')
-        self.driver.find_element(By.ID, 'dob').clear()
-        self.driver.find_element(By.ID, 'dob').send_keys('2000-01-01')
-        self.driver.find_element(By.ID, 'save-button').click()
-        print("User edited successfully")
-
-        # Wait for redirection to profile page
-        WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://127.0.0.1:8000/'
-        )
-
-        self.driver.find_element(By.ID, 'add-button').click()
-        print("Add button clicked")
-
-        WebDriverWait(self.driver, 10).until(
-        EC.visibility_of_element_located((By.ID, 'HobbyAddModal'))
-        )
-
-        self.driver.find_element(By.ID, 'hobby-select').click()
-        time.sleep(1)  # Wait for dropdown to open
-        self.driver.find_element(By.ID, 'Music').click()
-        time.sleep(1)  # Wait for selection to register
-        
-        # Try to click the button using CSS selector
-        add_button = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, '#HobbyAddModal button.btn-primary'))
-        )
-        add_button.click()
-        print("Hobby added successfully")
-        
-        # Wait for modal to close
-        WebDriverWait(self.driver, 10).until(
+        # Wait for modal to completely close first
+        wait.until(
             EC.invisibility_of_element_located((By.ID, 'HobbyAddModal'))
         )
-        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/')
-        print("User edited successfully revert username")
-
-
-class Send_Request_Test(LiveServerTestCase):
-    def setUp(self):
         
-        options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
-        service = Service(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(service=service, options=options)
-        self.driver.implicitly_wait(10)
+        # Then try to click delete button
+        delete_button = wait.until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, ".Table-Row .btn-primary"))
+        )
+        delete_button.click()
+        
+        # Wait for row to be removed
+        wait.until(
+            EC.invisibility_of_element_located((By.XPATH, "//div[contains(@class, 'Table-Row')]"))
+        )
+        self.assertEqual(len(self.selenium.find_elements(By.XPATH, "//div[contains(@class, 'Table-Row')]")), 0)
+        print('New Hobby Added and Deleted Sucessfully')
 
-    def tearDown(self):
-        self.driver.quit()
+        # Click the add hobby button
+        add_hobby_button = wait.until(EC.element_to_be_clickable((By.ID, 'add-button')))
+        add_hobby_button.click()
+        wait.until(EC.visibility_of_element_located((By.ID, 'HobbyAddModal')))
+
+        # Add an existing hobby
+        hobby_field = wait.until(EC.element_to_be_clickable((By.ID, 'hobby-select')))
+        hobby_field.click()
+        hobby = wait.until(EC.element_to_be_clickable((By.XPATH, '//option[@value="Art"]')))
+        hobby.click()
+        button_save_button.click()
+        wait.until(EC.invisibility_of_element_located((By.XPATH, 'HobbyModal')))
+        hobby_element = wait.until(EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'Table-Row') and normalize-space()]")))
+        hobby_text = hobby_element.text.strip()        
+        self.assertIn('Art', hobby_text)
         
-    def test_Request(self):
-        self.driver.get('http://127.0.0.1:8000/login')
-        self.driver.find_element(By.ID, 'username').send_keys('newusername')
-        self.driver.find_element(By.ID, 'password').send_keys('testpass123')
-        self.driver.find_element(By.ID, 'submit').click()
-        
-        # Wait for redirection to profile page
-        WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://127.0.0.1:8000/'
+        # Wait for modal to completely close first
+        wait.until(
+            EC.invisibility_of_element_located((By.ID, 'HobbyAddModal'))
         )
         
-        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/')
-        print("User logged in successfully")
-
-        self.driver.find_element(By.ID, 'hobbies-link').click()
-
-        print("Current URL:", self.driver.current_url)
-        
-        WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://127.0.0.1:8000/Hobbies/'
+        # Then try to click delete button
+        delete_button = wait.until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, ".Table-Row .btn-primary"))
         )
+        delete_button.click()
         
-        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/Hobbies/')
-        
-        # Wait for the table to load
-        WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.ID, 'user-table'))
+        # Wait for row to be removed
+        wait.until(
+            EC.invisibility_of_element_located((By.XPATH, "//div[contains(@class, 'Table-Row')]"))
         )
+        self.assertEqual(len(self.selenium.find_elements(By.XPATH, "//div[contains(@class, 'Table-Row')]")), 0)
+        print('Existing Hobby Added and Deleted Sucessfully')
+        print('Edit Profile Test Passed')
+
+    def test_04_filter_hobbies(self):
+        # Test Setup
+        print('\n\n---Filter Hobbies Test---')
+        User = get_user_model()
+        User.objects.create_user(**self.test_user_1)
+        User.objects.create_user(**self.test_user_2)
+        self.selenium.get(f'{self.live_server_url}/login/')
+        wait = WebDriverWait(self.selenium, 10)
         
-        # Get all user rows and click the first send friend request button
-        user_rows = self.driver.find_elements(By.CSS_SELECTOR, 'tbody tr')
-        self.assertGreater(len(user_rows), 0, "No users found in the table")
+        # Login
+        username_field = wait.until(EC.presence_of_element_located((By.ID, 'username')))
+        username_field.send_keys(self.test_user_1['username'])
+        password_field = wait.until(EC.presence_of_element_located((By.ID, 'password')))
+        password_field.send_keys(self.test_user_1['password'])
+        submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'submit')))
+        submit_button.click()
+        wait.until(EC.url_to_be(self.live_server_url + '/'))
+        print('Logged in as User 1')
+
+        # Navigate to the hobbies page
+        hobbies_tab = wait.until(EC.element_to_be_clickable((By.ID, 'hobbies-link')))
+        hobbies_tab.click()
+        print('Navigated to Hobbies Page')
+
+        # Filter Age Test 1
+        min_age_field = wait.until(EC.presence_of_element_located((By.ID, 'min-age')))
+        min_age_field.clear()
+        min_age_field.send_keys('30')
+        max_age_field = wait.until(EC.presence_of_element_located((By.ID, 'max-age')))
+        max_age_field.clear()
+        max_age_field.send_keys('40')
+        filter_button = wait.until(EC.element_to_be_clickable((By.ID, 'apply-filter')))
+        filter_button.click()
+        print('Filtered Age with 30-40')
+        rows = self.selenium.find_elements(By.XPATH, "//table[@id='user-table']//tbody/tr")
+        self.assertGreater(len(rows), 0)
+        print('Age Filter Successfully Returned 1 Result')
+
+        # Filter Age Test 2
+        min_age_field = wait.until(EC.presence_of_element_located((By.ID, 'min-age')))
+        min_age_field.clear()
+        min_age_field.send_keys('20')
+        max_age_field = wait.until(EC.presence_of_element_located((By.ID, 'max-age')))
+        max_age_field.clear()
+        max_age_field.send_keys('22')
+        filter_button = wait.until(EC.element_to_be_clickable((By.ID, 'apply-filter')))
+        filter_button.click()
+        print('Filtered Age with 20-22')
+        rows = self.selenium.find_elements(By.XPATH, "//table[@id='user-table']//tbody/tr")
+        self.assertEqual(len(rows), 0)
+        print('Age Filter Successfully Returned 0 Results')
+
+        # Filter Clear
+        reset_filter_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Reset Filter')]")))
+        reset_filter_button.click()
+        print('Filter Cleared')
+        rows = self.selenium.find_elements(By.XPATH, "//table[@id='user-table']//tbody/tr")
+        self.assertEqual(len(rows), 1)
+        print('Filter Cleared Successfully Returned All Results')
+        print('Filter Hobbies Test Passed')
+
+    def test_05_send_friend_request(self):
+        # Test Setup
+        print('\n\n---Send Friend Request Test---')
+        User = get_user_model()
+        User.objects.create_user(**self.test_user_1)
+        User.objects.create_user(**self.test_user_2)
+        self.selenium.get(f'{self.live_server_url}/login/')
+        wait = WebDriverWait(self.selenium, 10)
         
-        send_request_button = user_rows[0].find_element(By.ID, 'send-friend-request')
-        send_request_button.click()
+        # Login
+        username_field = wait.until(EC.presence_of_element_located((By.ID, 'username')))
+        username_field.send_keys(self.test_user_1['username'])
+        password_field = wait.until(EC.presence_of_element_located((By.ID, 'password')))
+        password_field.send_keys(self.test_user_1['password'])
+        submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'submit')))
+        submit_button.click()
+        wait.until(EC.url_to_be(self.live_server_url + '/'))
+        print('Logged in as User 1')
 
-        time.sleep(2)
+        # Navigate to the hobbies page
+        hobbies_tab = wait.until(EC.element_to_be_clickable((By.ID, 'hobbies-link')))
+        hobbies_tab.click()
+        print('Navigated to Hobbies Page')
+
+        # Send Friend Request
+        friend_button = wait.until(EC.element_to_be_clickable((By.ID, 'send-friend-request')))
+        friend_button.click()
+        wait.until(EC.invisibility_of_element_located((By.ID, 'send-friend-request')))
+        span_element = wait.until(EC.presence_of_element_located((By.TAG_NAME, 'span')))
+        self.assertEqual(span_element.text, 'Friend request sent')
+        print('Friend Request Sent')
+        print('Send Friend Request Test Passed')
+
+    def test_06_accept_friend_request(self):
+        # Test Setup
+        print('\n\n---Accept Friend Request Test---')
+        User = get_user_model()
+        User.objects.create_user(**self.test_user_1)
+        User.objects.create_user(**self.test_user_2)
+        self.selenium.get(f'{self.live_server_url}/login/')
+        wait = WebDriverWait(self.selenium, 10)
         
-        print("Request sent successfully")
+        # Login
+        username_field = wait.until(EC.presence_of_element_located((By.ID, 'username')))
+        username_field.send_keys(self.test_user_1['username'])
+        password_field = wait.until(EC.presence_of_element_located((By.ID, 'password')))
+        password_field.send_keys(self.test_user_1['password'])
+        submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'submit')))
+        submit_button.click()
+        wait.until(EC.url_to_be(self.live_server_url + '/'))
+        print('Logged in as User 1')
 
+        # Navigate to the hobbies page
+        hobbies_tab = wait.until(EC.element_to_be_clickable((By.ID, 'hobbies-link')))
+        hobbies_tab.click()
+        print('Navigated to Hobbies Page')
 
-class Accept_Request_Test(LiveServerTestCase):
-    def setUp(self):
-        
-        options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
-        service = Service(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(service=service, options=options)
-        self.driver.implicitly_wait(10)
+        # Send Friend Request
+        friend_button = wait.until(EC.element_to_be_clickable((By.ID, 'send-friend-request')))
+        friend_button.click()
+        wait.until(EC.invisibility_of_element_located((By.ID, 'send-friend-request')))
+        span_element = wait.until(EC.presence_of_element_located((By.TAG_NAME, 'span')))
+        self.assertEqual(span_element.text, 'Friend request sent')
+        print('Friend Request Sent')
 
-    def tearDown(self):
-        self.driver.quit()
-        
-    def test_Request(self):
-        self.driver.get('http://127.0.0.1:8000/login')
-        self.driver.find_element(By.ID, 'username').send_keys('MusicVibes09')
-        self.driver.find_element(By.ID, 'password').send_keys('M1Us=s5%0A<,')
-        self.driver.find_element(By.ID, 'submit').click()
-        
-        
-        WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://127.0.0.1:8000/'
-        )
-        
-        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/')
-        print("User logged in successfully")
+        # Log out
+        logout_button = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'btn-logout')))
+        logout_button.click()
+        wait.until(EC.url_to_be(self.live_server_url + '/login/'))
+        print('Logged out as User 1')
 
-        self.driver.find_element(By.ID, 'friends-link').click()
+        # Login as User 2
+        username_field = wait.until(EC.presence_of_element_located((By.ID, 'username')))
+        username_field.send_keys(self.test_user_2['username'])
+        password_field = wait.until(EC.presence_of_element_located((By.ID, 'password')))
+        password_field.send_keys(self.test_user_2['password'])
+        submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'submit')))
+        submit_button.click()
+        wait.until(EC.url_to_be(self.live_server_url + '/'))
+        print('Logged in as User 2')
 
-        print("Current URL:", self.driver.current_url)
-        
-        WebDriverWait(self.driver, 10).until(
-            lambda driver: driver.current_url == 'http://127.0.0.1:8000/friends/'
-        )
-        
-        self.assertEqual(self.driver.current_url, 'http://127.0.0.1:8000/friends/')
-        
-        self.driver.find_element(By.ID, 'accept-friend-request').click()
+        # Navigate to the friends page
+        friends_tab = wait.until(EC.element_to_be_clickable((By.ID, 'friends-link')))
+        friends_tab.click()
+        print('Navigated to Friends Page')
 
-        time.sleep(2)
-        
-        print("Request sent successfully")
+        # Accept Friend Request
+        accept_button = wait.until(EC.element_to_be_clickable((By.ID, 'accept-friend-request')))
+        accept_button.click()
+        wait.until(EC.invisibility_of_element_located((By.XPATH, f"//td[contains(text(), '{self.test_user_1['username']}')]")))
+        print('Friend Request Accepted')
 
-
-class Tests(LiveServerTestCase):
-    def setUp(self):
-        options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
-        service = Service(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(service=service, options=options)
-        self.driver.implicitly_wait(10)
-
-    def tearDown(self):
-        self.driver.quit()
-
-    def test_all(self):
-        # Run registration test
-        print("\n=== Starting Registration Test ===")
-        register_test = Register_Test()
-        register_test.setUp()
-        try:
-            register_test.test_create_account()
-        finally:
-            register_test.tearDown()
-        print("=== Registration Test Complete ===\n")
-
-        # Run login test
-        print("=== Starting Login Test ===")
-        login_test = Login_Test()
-        login_test.setUp()
-        try:
-            login_test.test_login()
-        finally:
-            login_test.tearDown()
-        print("=== Login Test Complete ===\n")
-
-        # Run age filter test
-        print("=== Starting Age Filter Test ===")
-        filter_test = Age_Filter_Test()
-        filter_test.setUp()
-        try:
-            filter_test.test_age_filter()
-        finally:
-            filter_test.tearDown()
-        print("=== Age Filter Test Complete ===\n")
-
-        # Run edit profile test
-        print("=== Starting Edit Profile Test ===")
-        edit_test = Edit_Test()
-        edit_test.setUp()
-        try:
-            edit_test.test_edit()
-        finally:
-            edit_test.tearDown()
-        print("=== Edit Profile Test Complete ===\n")
-
-        # Run send friend request test
-        print("=== Starting Send Friend Request Test ===")
-        request_test = Send_Request_Test()
-        request_test.setUp()
-        try:
-            request_test.test_Request()
-        finally:
-            request_test.tearDown()
-        print("=== Send Friend Request Test Complete ===\n")
-
-        # Run accept friend request test
-        print("=== Starting Accept Friend Request Test ===")
-        accept_test = Accept_Request_Test()
-        accept_test.setUp()
-        try:
-            accept_test.test_Request()
-        finally:
-            accept_test.tearDown()
-        print("=== Accept Friend Request Test Complete ===\n")
-
-        print("All tests completed successfully!")
+        friend_row = wait.until(EC.presence_of_element_located((By.XPATH, f"//td[contains(text(), '{self.test_user_1['username']}')]")))
+        self.assertIsNotNone(friend_row)
+        print('User1 now appears in current friends table')
