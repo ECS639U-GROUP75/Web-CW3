@@ -139,30 +139,30 @@ INTERNAL_IPS = ['127.0.0.1']
 
 AUTH_USER_MODEL = 'api.User'
 
-if DEBUG:
-    CORS_ALLOW_CREDENTIALS = True
-    CORS_ALLOWED_ORIGINS = [
-        "http://localhost:5173",
-        "https://group-75-web-apps-ec22771.apps.a.comp-teach.qmul.ac.uk"
-    ]
-    CSRF_TRUSTED_ORIGINS = [
-        "http://localhost:5173",
-        "https://group-75-web-apps-ec22771.apps.a.comp-teach.qmul.ac.uk"
-    ]
-    CORS_ALLOW_METHODS = [
-        'GET',
-        'POST',
-        'OPTIONS'
-    ]
-    CORS_ALLOW_HEADERS = [
-        'accept',
-        'accept-encoding',
-        'authorization',
-        'content-type',
-        'dnt',
-        'origin',
-        'user-agent',
-        'x-csrftoken',
-        'x-requested-with',
-    ]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "https://group-75-web-apps-ec22771.apps.a.comp-teach.qmul.ac.uk"
+]
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "https://group-75-web-apps-ec22771.apps.a.comp-teach.qmul.ac.uk"
+]
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'OPTIONS'
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
