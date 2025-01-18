@@ -102,6 +102,7 @@ class Tests(StaticLiveServerTestCase):
         password2_field.send_keys(self.test_user_1['password'])
         
         submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'submit')))
+        time.sleep(5)
         submit_button.click()
         print('submit button clicked')
         
@@ -133,6 +134,7 @@ class Tests(StaticLiveServerTestCase):
         password_field = wait.until(EC.presence_of_element_located((By.ID, 'password')))
         password_field.send_keys(self.test_user_1['password'])
         submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'submit')))
+        time.sleep(5)
         submit_button.click()
         
         # Wait for the page to load
@@ -166,12 +168,14 @@ class Tests(StaticLiveServerTestCase):
         password_field = wait.until(EC.presence_of_element_located((By.ID, 'password')))
         password_field.send_keys(self.test_user_1['password'])
         submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'submit')))
+        time.sleep(5)
         submit_button.click()
         print('Logged in as User 1')
         
         # Wait for the page to load and click the edit button
         wait.until(EC.url_to_be(self.live_server_url + '/'))
         edit_button = wait.until(EC.element_to_be_clickable((By.ID, 'edit-button')))
+        time.sleep(5)
         edit_button.click()
         wait.until(EC.visibility_of_element_located((By.ID, 'ProfileEditModal')))
         print('Edit Modal Opened')
@@ -196,6 +200,7 @@ class Tests(StaticLiveServerTestCase):
         edit_password2_field.clear()
         edit_password2_field.send_keys(new_data['password'])
         save_button = wait.until(EC.element_to_be_clickable((By.ID, 'save-button')))
+        time.sleep(5)
         save_button.click()
         print('Profile Edited')
 
@@ -219,6 +224,7 @@ class Tests(StaticLiveServerTestCase):
         password_field = wait.until(EC.presence_of_element_located((By.ID, 'password')))
         password_field.send_keys(new_data['password'])
         submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'submit')))
+        time.sleep(5)
         submit_button.click()
         wait.until(EC.url_to_be(self.live_server_url + '/'))
         self.selenium.find_element(By.CLASS_NAME, 'btn-logout')
@@ -227,6 +233,7 @@ class Tests(StaticLiveServerTestCase):
         # Add Hobby Test
         # Click the add hobby button
         add_hobby_button = wait.until(EC.element_to_be_clickable((By.ID, 'add-button')))
+        time.sleep(5)
         add_hobby_button.click()
         wait.until(EC.visibility_of_element_located((By.ID, 'HobbyAddModal')))
         print('Add Hobby Modal Opened')
@@ -235,10 +242,12 @@ class Tests(StaticLiveServerTestCase):
         hobby_field = wait.until(EC.element_to_be_clickable((By.ID, 'hobby-select')))
         hobby_field.click()
         hobby = wait.until(EC.element_to_be_clickable((By.XPATH, '//option[@value="Other"]')))
+        time.sleep(5)
         hobby.click()
         new_hobby_field = wait.until(EC.presence_of_element_located((By.ID, 'hobby-name')))
         new_hobby_field.send_keys('Test')
         button_save_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[text()="Add Hobby"]')))
+        time.sleep(5)
         button_save_button.click()
         wait.until(EC.invisibility_of_element_located((By.XPATH, 'HobbyAddModal')))
         hobby_element = wait.until(EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'Table-Row') and normalize-space()]")))
@@ -251,6 +260,7 @@ class Tests(StaticLiveServerTestCase):
         delete_button = wait.until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, ".Table-Row .btn-primary"))
         )
+        time.sleep(5)
         delete_button.click()
         
         # Wait for row to be removed
@@ -262,6 +272,7 @@ class Tests(StaticLiveServerTestCase):
 
         # Click the add hobby button
         add_hobby_button = wait.until(EC.element_to_be_clickable((By.ID, 'add-button')))
+        time.sleep(5)
         add_hobby_button.click()
         wait.until(EC.visibility_of_element_located((By.ID, 'HobbyAddModal')))
         print('Add Hobby Modal Opened')
@@ -270,7 +281,9 @@ class Tests(StaticLiveServerTestCase):
         hobby_field = wait.until(EC.element_to_be_clickable((By.ID, 'hobby-select')))
         hobby_field.click()
         hobby = wait.until(EC.element_to_be_clickable((By.XPATH, '//option[@value="Art"]')))
+        time.sleep(5)
         hobby.click()
+        time.sleep(5)
         button_save_button.click()
         wait.until(EC.invisibility_of_element_located((By.XPATH, 'HobbyAddModal')))
         hobby_element = wait.until(EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'Table-Row') and normalize-space()]")))
@@ -283,6 +296,7 @@ class Tests(StaticLiveServerTestCase):
         delete_button = wait.until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, ".Table-Row .btn-primary"))
         )
+        time.sleep(5)
         delete_button.click()
         
         # Wait for row to be removed
@@ -308,12 +322,14 @@ class Tests(StaticLiveServerTestCase):
         password_field = wait.until(EC.presence_of_element_located((By.ID, 'password')))
         password_field.send_keys(self.test_user_1['password'])
         submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'submit')))
+        time.sleep(5)
         submit_button.click()
         wait.until(EC.url_to_be(self.live_server_url + '/'))
         print('Logged in as User 1')
 
         # Navigate to the hobbies page
         hobbies_tab = wait.until(EC.element_to_be_clickable((By.ID, 'hobbies-link')))
+        time.sleep(5)
         hobbies_tab.click()
         print('Navigated to Hobbies Page')
 
@@ -325,6 +341,7 @@ class Tests(StaticLiveServerTestCase):
         max_age_field.clear()
         max_age_field.send_keys('40')
         filter_button = wait.until(EC.element_to_be_clickable((By.ID, 'apply-filter')))
+        time.sleep(5)
         filter_button.click()
         print('Filtered Age with 30-40')
         rows = self.selenium.find_elements(By.XPATH, "//table[@id='user-table']//tbody/tr")
@@ -339,6 +356,7 @@ class Tests(StaticLiveServerTestCase):
         max_age_field.clear()
         max_age_field.send_keys('22')
         filter_button = wait.until(EC.element_to_be_clickable((By.ID, 'apply-filter')))
+        time.sleep(5)
         filter_button.click()
         print('Filtered Age with 20-22')
         rows = self.selenium.find_elements(By.XPATH, "//table[@id='user-table']//tbody/tr")
@@ -347,6 +365,7 @@ class Tests(StaticLiveServerTestCase):
 
         # Filter Clear
         reset_filter_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Reset Filter')]")))
+        time.sleep(5)
         reset_filter_button.click()
         print('Filter Cleared')
         rows = self.selenium.find_elements(By.XPATH, "//table[@id='user-table']//tbody/tr")
@@ -369,17 +388,20 @@ class Tests(StaticLiveServerTestCase):
         password_field = wait.until(EC.presence_of_element_located((By.ID, 'password')))
         password_field.send_keys(self.test_user_1['password'])
         submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'submit')))
+        time.sleep(5)
         submit_button.click()
         wait.until(EC.url_to_be(self.live_server_url + '/'))
         print('Logged in as User 1')
 
         # Navigate to the hobbies page
         hobbies_tab = wait.until(EC.element_to_be_clickable((By.ID, 'hobbies-link')))
+        time.sleep(5)
         hobbies_tab.click()
         print('Navigated to Hobbies Page')
 
         # Send Friend Request
         friend_button = wait.until(EC.element_to_be_clickable((By.ID, 'send-friend-request')))
+        time.sleep(5)
         friend_button.click()
         wait.until(EC.invisibility_of_element_located((By.ID, 'send-friend-request')))
         span_element = wait.until(EC.presence_of_element_located((By.TAG_NAME, 'span')))
@@ -402,17 +424,20 @@ class Tests(StaticLiveServerTestCase):
         password_field = wait.until(EC.presence_of_element_located((By.ID, 'password')))
         password_field.send_keys(self.test_user_1['password'])
         submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'submit')))
+        time.sleep(5)
         submit_button.click()
         wait.until(EC.url_to_be(self.live_server_url + '/'))
         print('Logged in as User 1')
 
         # Navigate to the hobbies page
         hobbies_tab = wait.until(EC.element_to_be_clickable((By.ID, 'hobbies-link')))
+        time.sleep(5)
         hobbies_tab.click()
         print('Navigated to Hobbies Page')
 
         # Send Friend Request
         friend_button = wait.until(EC.element_to_be_clickable((By.ID, 'send-friend-request')))
+        time.sleep(5)
         friend_button.click()
         wait.until(EC.invisibility_of_element_located((By.ID, 'send-friend-request')))
         span_element = wait.until(EC.presence_of_element_located((By.TAG_NAME, 'span')))
@@ -421,6 +446,7 @@ class Tests(StaticLiveServerTestCase):
 
         # Log out
         logout_button = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'btn-logout')))
+        time.sleep(5)
         logout_button.click()
         wait.until(EC.url_to_be(self.live_server_url + '/login/'))
         print('Logged out as User 1')
@@ -431,17 +457,20 @@ class Tests(StaticLiveServerTestCase):
         password_field = wait.until(EC.presence_of_element_located((By.ID, 'password')))
         password_field.send_keys(self.test_user_2['password'])
         submit_button = wait.until(EC.element_to_be_clickable((By.ID, 'submit')))
+        time.sleep(5)
         submit_button.click()
         wait.until(EC.url_to_be(self.live_server_url + '/'))
         print('Logged in as User 2')
 
         # Navigate to the friends page
         friends_tab = wait.until(EC.element_to_be_clickable((By.ID, 'friends-link')))
+        time.sleep(5)
         friends_tab.click()
         print('Navigated to Friends Page')
 
         # Accept Friend Request
         accept_button = wait.until(EC.element_to_be_clickable((By.ID, 'accept-friend-request')))
+        time.sleep(5)
         accept_button.click()
         wait.until(EC.invisibility_of_element_located((By.XPATH, f"//td[contains(text(), '{self.test_user_1['username']}')]")))
         print('Friend Request Accepted')
