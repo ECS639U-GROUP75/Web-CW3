@@ -1,12 +1,5 @@
 # Web-CW3
 
-
-## Group Contribution
-- David: Profile page, editing user information, adding and removing hobbies
-- Ayub: Login and registration, selenium testing
-- Ahmed: Similiar Hobbies page, sending friend request
-- Basil: Modals for User Hobbies and Friends, Friends page, Hosting
-
 ## URL
 OpenShift Hosting: [Link](https://group-75-web-apps-ec22771.apps.a.comp-teach.qmul.ac.uk)
 
